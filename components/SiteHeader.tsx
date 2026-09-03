@@ -170,34 +170,6 @@ function AccountLink({ quiet = false }: { quiet?: boolean }) {
   );
 }
 
-function LabHeader() {
-  return (
-    <header className="sticky top-0 z-40 border-b border-border/70 bg-bg">
-      <div className="mx-auto flex min-h-16 w-full max-w-[92rem] items-center justify-between gap-5 px-4 sm:px-6 lg:px-8">
-        <a
-          href="#main"
-          className="sr-only bg-bg px-4 py-2 text-sm text-fg ring-1 ring-border focus:not-sr-only focus:absolute focus:left-4 focus:top-3"
-        >
-          Skip to content
-        </a>
-        <Link href="/lab" className="flex min-w-0 items-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40">
-          <Image src={faviconIcon} alt="" className="h-7 w-7 object-contain" priority />
-          <span className="text-sm font-semibold tracking-tight text-fg">MineBench</span>
-          <span aria-hidden="true" className="h-4 w-px bg-border" />
-          <span className="text-sm text-muted">Lab</span>
-        </Link>
-        <div className="flex items-center gap-2">
-          <Link href="/" className="inline-flex min-h-11 items-center px-3 text-sm text-muted transition-colors hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40">
-            Arena
-          </Link>
-          <AccountLink quiet />
-          <ThemeToggle quiet />
-        </div>
-      </div>
-    </header>
-  );
-}
-
 function NavLink({ href, label }: { href: string; label: string }) {
   const pathname = usePathname();
   const active = href === "/" ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
@@ -274,7 +246,6 @@ function SocialIconLink({
 
 export function SiteHeader() {
   const pathname = usePathname();
-  if (pathname === "/lab" || pathname.startsWith("/lab/")) return <LabHeader />;
 
   return (
     <header className="relative sticky top-0 z-40 border-b border-border bg-bg">
@@ -338,11 +309,9 @@ export function SiteHeader() {
         <nav className="grid w-full grid-cols-[1fr_auto] items-center gap-2 sm:flex sm:w-auto sm:flex-nowrap sm:items-center sm:gap-1">
           <div className="relative min-w-0">
             <div className="flex items-center gap-5 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-              <NavLink href="/" label="Arena" />
-              <NavLink href="/sandbox" label="Sandbox" />
-              <NavLink href="/gallery" label="Gallery" />
-              <NavLink href="/leaderboard" label="Leaderboard" />
+              <NavLink href="/" label="Builder" />
               <NavLink href="/faq" label="FAQ" />
+              <NavLink href="/contact" label="Contact" />
               <div className="mx-0.5 h-5 w-px shrink-0 bg-border/50 sm:mx-1" aria-hidden="true" />
               <SupportLink />
             </div>

@@ -14,7 +14,11 @@ const TILE_SIZE = 32;
 
 const ALIASES = {
   water: "water_still",
-  lava: "lava_still"
+  lava: "lava_still",
+  oak_door: "oak_door_bottom",
+  spruce_door: "spruce_door_bottom",
+  birch_door: "birch_door_bottom",
+  dark_oak_door: "dark_oak_door_bottom"
 };
 
 function canonicalBlockId(id) {

@@ -47,11 +47,15 @@ possible without regenerating anything.
 | Renderer | `lib/voxel/`, `components/voxel/` |
 | Export | `lib/voxel/export/` |
 
-## Status
+## The builder
 
-The pipeline, the palette layer, the validation pass and the exporters are in
-place with tests. The builder UI is the next piece of work; the home page is a
-placeholder until it lands.
+The home page is the builder: a prompt box and model picker, the build program
+in an editable panel with a Run button, the 3D preview, the palette editor with
+block search and colour swatches, a budget selector with a live cost readout,
+the validation findings, and the export buttons.
+
+Editing the palette or the budget re-resolves the build in place. Only Generate
+and Run go near a model or the compiler.
 
 ## Exports
 

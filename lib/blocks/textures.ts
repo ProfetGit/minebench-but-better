@@ -4,7 +4,12 @@ export type Face = "north" | "south" | "east" | "west" | "up" | "down";
 
 const ALIASES: Record<string, string> = {
   water: "water_still",
-  lava: "lava_still"
+  lava: "lava_still",
+  // Doors have no full-cube texture; the lower half stands in for the preview.
+  oak_door: "oak_door_bottom",
+  spruce_door: "spruce_door_bottom",
+  birch_door: "birch_door_bottom",
+  dark_oak_door: "dark_oak_door_bottom"
 };
 
 function canonicalBlockId(blockId: string) {

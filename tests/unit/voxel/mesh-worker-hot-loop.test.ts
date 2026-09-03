@@ -119,7 +119,8 @@ function testGoldenFixtureParity() {
   const payload = buildMeshPayload(packed, allowed);
   assert.deepEqual(buildMeshPayloadFromFacts(createVoxelMeshFacts(packed), allowed), payload);
 
-  // frozen from the preoptimization mesher so byte changes require deliberate review
+  // Frozen so byte changes require deliberate review. These moved when the
+  // texture atlas grew to cover the palette catalogue.
   assert.deepEqual(
     {
       filteredBlockCount: payload.filteredBlockCount,
@@ -138,11 +139,11 @@ function testGoldenFixtureParity() {
         center: [0, 1, 0],
         radius: 3.3166247903554,
       },
-      opaque: "a161a573a19eefa0150c3dde2c637617bbf49ff489824f6d147cb423025e06e7",
-      cutout: "c49e65f30520d9d6bb7f783b7e92b420d245882398fd3ddb9505007719456260",
-      transparent: "4fb0e12448099b81991af525fe97f5de562270c946f7cba51344f180db0d6586",
+      opaque: "f9a6ffc498ef69ba5ed81bef332e417ab0c3299df54bc55e67f071ffc7dcbc4a",
+      cutout: "c2197507623d137a5ee42ba98ca17ace299f84522d2854f7d36557c75aa9833d",
+      transparent: "c418e57d2a404b2e859ef6ed23312a52cdda9358e2e23cac0804be8b11e79869",
       water: "3837124069a5028ab0ced933f1191134f2d3de55cb9673a833940f06ce5323b2",
-      emissive: "f7111044e1120477b3eb69f210f93d251c42f4ba6323bbd0ba9703574adb29c5",
+      emissive: "b6ce2889a78ea235ff3f0457daa71025688817a34725fa6c367202a1be29654c",
     },
   );
 

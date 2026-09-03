@@ -81,11 +81,16 @@ assert.notEqual(
   const b = toRenderBuild(stone.blocks);
   assert.equal(a.build.blocks.length, b.build.blocks.length);
   assert.equal(a.build.blocks.length, spruce.blocks.length);
-  // Stairs and slabs are flattened for the preview only, and a block the small
-  // render palette does not carry falls back. Both are reported rather than
-  // hidden.
-  assert.ok(b.substitutions.some((substitution) => substitution.reason === "form_flattened"));
-  assert.ok(a.substitutions.some((substitution) => substitution.reason === "no_render_block"));
+  // Stairs and slabs are flattened for the preview only, and that is reported
+  // rather than hidden. The render palette covers the catalogue, so nothing
+  // should be falling back to a substitute block.
+  for (const build of [a, b]) {
+    assert.ok(build.substitutions.some((substitution) => substitution.reason === "form_flattened"));
+    assert.deepEqual(
+      build.substitutions.filter((substitution) => substitution.reason === "no_render_block"),
+      [],
+    );
+  }
 }
 
 // Resolution is stable: the same grid and palette always give the same blocks.

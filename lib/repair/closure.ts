@@ -1,10 +1,35 @@
 import type { Vec3 } from "@/lib/build/types";
-import { fillExterior, NEIGHBOURS, spaceKey, type Occupancy } from "@/lib/repair/space";
+import { fillExterior, spaceKey, type Occupancy } from "@/lib/repair/space";
 import { cap, sortCoords, type Finding } from "@/lib/repair/types";
 
-// How many solid neighbours an empty cell needs before it reads as a hole in a
-// surface rather than as open air beside the build.
-const ENCLOSED_NEIGHBOUR_THRESHOLD = 4;
+// A hole in a surface has a definite shape: the cell is open along exactly one
+// axis, which is the direction you could pass through it, and enclosed on the
+// other two. Open air under an eave fails that test, a missing block in a wall
+// passes it.
+function isHoleInSurface(space: Occupancy, x: number, y: number, z: number): boolean {
+  const axes: Array<[boolean, boolean]> = [
+    [
+      space.solid.has(spaceKey(x - 1, y, z)),
+      space.solid.has(spaceKey(x + 1, y, z)),
+    ],
+    [
+      space.solid.has(spaceKey(x, y - 1, z)),
+      space.solid.has(spaceKey(x, y + 1, z)),
+    ],
+    [
+      space.solid.has(spaceKey(x, y, z - 1)),
+      space.solid.has(spaceKey(x, y, z + 1)),
+    ],
+  ];
+
+  let through = 0;
+  let enclosed = 0;
+  for (const [low, high] of axes) {
+    if (!low && !high) through += 1;
+    else if (low && high) enclosed += 1;
+  }
+  return through === 1 && enclosed === 2;
+}
 
 // A gap is an empty cell that sits in a wall or a roof, is reachable from
 // outside, and was not one of the openings the program asked for. Declared
@@ -26,13 +51,7 @@ export function checkClosure(space: Occupancy): Finding[] {
         if (space.solid.has(key) || declared.has(key)) continue;
         if (!exterior.has(key)) continue;
 
-        let solidNeighbours = 0;
-        for (const offset of NEIGHBOURS) {
-          if (space.solid.has(spaceKey(x + offset.x, y + offset.y, z + offset.z))) {
-            solidNeighbours += 1;
-          }
-        }
-        if (solidNeighbours >= ENCLOSED_NEIGHBOUR_THRESHOLD) gaps.push({ x, y, z });
+        if (isHoleInSurface(space, x, y, z)) gaps.push({ x, y, z });
       }
     }
   }

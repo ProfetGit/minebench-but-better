@@ -99,6 +99,20 @@ separate piece of work.
 STL. The Litematica writer is checked by a round trip test that reads its own
 output back and compares block for block, including block states.
 
+## The builder page
+
+`components/builder/` is the single page: prompt and model picker, the editable
+program panel, the preview, the palette editor, the budget selector, the
+findings panel and the exports. It talks to three routes:
+
+- `POST /api/build/compile` runs the program, resolves it under a palette, runs
+  the checks, and returns everything the page draws
+- `POST /api/build/generate` asks a model for a program
+- `POST /api/build/export` runs the same pipeline and returns a file
+
+Palette and budget edits call compile again. Generation is a separate button, so
+nothing the person is editing moves underneath them.
+
 ## Persistence
 
 Prisma on PostgreSQL holds accounts, saved generations and their artifacts, and
