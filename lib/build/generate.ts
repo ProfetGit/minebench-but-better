@@ -6,7 +6,10 @@ import { openaiGenerateText } from "@/lib/ai/providers/openai";
 import { openrouterGenerateText } from "@/lib/ai/providers/openrouter";
 import type { ProviderApiKeys } from "@/lib/ai/types";
 
-export const DEFAULT_DSL_MAX_OUTPUT_TOKENS = 8_000;
+// A whole building program plus whatever reasoning the model does first. Gemini
+// and the OpenAI reasoning models spend part of this budget on thinking, so a
+// tight cap comes back as a truncated program rather than an error.
+export const DEFAULT_DSL_MAX_OUTPUT_TOKENS = 16_000;
 
 export type GenerateDslParams = {
   prompt: string;
@@ -25,10 +28,9 @@ export type GenerateDslResult = {
   rawText: string;
 };
 
-// OpenAI's text entry point requires a structured output schema, so the program
-// comes back as one JSON field there. Every other provider returns the program
-// as plain text.
-const PROGRAM_SCHEMA = {
+// OpenAI and Gemini both run their text entry points in structured output mode,
+// so the program comes back as one JSON field there. extractProgram unwraps it.
+export const PROGRAM_SCHEMA = {
   type: "object",
   properties: { program: { type: "string" } },
   required: ["program"],
@@ -68,6 +70,7 @@ export async function generateDslProgram(params: GenerateDslParams): Promise<Gen
       ...shared,
       apiKey: keys.gemini,
       maxOutputTokens,
+      jsonSchema: PROGRAM_SCHEMA as unknown as Record<string, unknown>,
     });
     return { source: extractProgram(text), modelKey: params.modelKey, provider: "gemini", rawText: text };
   }
