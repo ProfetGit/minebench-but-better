@@ -71,10 +71,26 @@ assert.ok(result.blocks.some((block) => block.id === "minecraft:spruce_door"));
 
 // Extracting the program tolerates the wrappers models put around it.
 {
-  const bare = "build(ctx => { ctx.mass({ w: 5, d: 5 }); });";
+  const bare = "build(ctx => {\n  ctx.mass({ w: 5, d: 5 });\n});";
   assert.equal(extractProgram(bare), bare);
   assert.equal(extractProgram("Here you go:\n```js\n" + bare + "\n```"), bare);
   assert.equal(extractProgram(JSON.stringify({ program: bare })), bare);
+  // Structured output inside a fence, which is what Gemini tends to send.
+  assert.equal(
+    extractProgram("```json\n" + JSON.stringify({ program: bare }) + "\n```"),
+    bare,
+  );
+  // An envelope the model truncated mid-string: the newlines are still escaped
+  // and the closing quote never arrived.
+  assert.equal(
+    extractProgram('{"program": "' + bare.replace(/\n/g, "\\n")),
+    bare,
+  );
+  // And one that closed properly but could not be parsed as a whole.
+  assert.equal(
+    extractProgram('{"program": "' + bare.replace(/\n/g, "\\n") + '", '),
+    bare,
+  );
 
   let caught: unknown;
   try {

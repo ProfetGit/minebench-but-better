@@ -100,21 +100,26 @@ export async function generateDslProgram(params: GenerateDslParams): Promise<Gen
   return { source: extractProgram(text), modelKey: params.modelKey, provider: "openrouter", rawText: text };
 }
 
-// Models wrap programs in prose or fences even when told not to. The program is
-// whatever surrounds the build( call.
+// Models wrap the program in prose, in a markdown fence, in a JSON envelope, or
+// in a fenced JSON envelope, and structured output sometimes arrives with the
+// newlines still escaped. All of those unwrap to the same program.
 export function extractProgram(text: string): string {
   const trimmed = text.trim();
   if (!trimmed) throw new Error("The model returned nothing");
 
-  const fromJson = programFromJson(trimmed);
-  if (fromJson) return fromJson.trim();
+  const body = stripFence(trimmed);
 
-  const fenced = trimmed.match(/```(?:[a-zA-Z]*)\n([\s\S]*?)```/);
-  const body = (fenced?.[1] ?? trimmed).trim();
+  const fromJson = programFromJson(body);
+  if (fromJson) return fromJson.trim();
 
   const start = body.indexOf("build(");
   if (start === -1) throw new Error("The model did not return a build() program");
-  return body.slice(start).trim();
+  return unescapeIfEscaped(body.slice(start)).trim();
+}
+
+function stripFence(text: string): string {
+  const fenced = text.match(/```(?:[a-zA-Z]*)\n([\s\S]*?)```/);
+  return (fenced?.[1] ?? text).trim();
 }
 
 function programFromJson(text: string): string | null {
@@ -126,7 +131,41 @@ function programFromJson(text: string): string | null {
       if (typeof program === "string" && program.includes("build(")) return program;
     }
   } catch {
+    // A truncated or malformed envelope still has the program in it; the caller
+    // salvages what is there rather than losing the whole response.
     return null;
   }
   return null;
+}
+
+// A program sliced out of a JSON envelope is still escaped: its newlines are
+// two characters rather than one. Running that verbatim fails with "Invalid or
+// unexpected token" on the first backslash.
+function unescapeIfEscaped(source: string): string {
+  if (source.includes("\n") || !source.includes("\\n")) return source;
+
+  const end = findClosingQuote(source);
+  const escaped = end === -1 ? source : source.slice(0, end);
+  try {
+    return JSON.parse(`"${escaped}"`) as string;
+  } catch {
+    // Fall back to the escapes that matter for source code, so a stray escape
+    // sequence does not throw away an otherwise usable program.
+    return escaped
+      .replace(/\\r\\n/g, "\n")
+      .replace(/\\n/g, "\n")
+      .replace(/\\t/g, "\t")
+      .replace(/\\"/g, '"')
+      .replace(/\\\\/g, "\\");
+  }
+}
+
+function findClosingQuote(source: string): number {
+  for (let index = 0; index < source.length; index += 1) {
+    if (source[index] !== '"') continue;
+    let backslashes = 0;
+    for (let back = index - 1; back >= 0 && source[back] === "\\"; back -= 1) backslashes += 1;
+    if (backslashes % 2 === 0) return index;
+  }
+  return -1;
 }
