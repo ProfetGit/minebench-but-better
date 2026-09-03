@@ -7,7 +7,11 @@ import { DslSourcePanel } from "@/components/builder/DslSourcePanel";
 import { EXAMPLE_PROGRAM } from "@/components/builder/exampleProgram";
 import { ExportBar, type ExportFormat } from "@/components/builder/ExportBar";
 import { PaletteEditor } from "@/components/builder/PaletteEditor";
-import { PromptBox, type ProviderKeyDraft } from "@/components/builder/PromptBox";
+import {
+  PromptBox,
+  type LocalGenerator,
+  type ProviderKeyDraft,
+} from "@/components/builder/PromptBox";
 import { readApiError, type CompileResponse } from "@/components/builder/types";
 import { WarningsPanel } from "@/components/builder/WarningsPanel";
 import type { RoleName } from "@/lib/build/roles";
@@ -34,6 +38,7 @@ export function Builder() {
   const [prompt, setPrompt] = useState("");
   const [modelKey, setModelKey] = useState(DEFAULT_MODEL);
   const [keys, setKeys] = useState<ProviderKeyDraft>({});
+  const [localGenerators, setLocalGenerators] = useState<LocalGenerator[]>([]);
   const [source, setSource] = useState(EXAMPLE_PROGRAM);
   const [palette, setPalette] = useState<PaletteDocument>(() => palettePreset(DEFAULT_PALETTE));
   const [budgetPreset, setBudgetPreset] = useState<BudgetPresetName>("established");
@@ -47,6 +52,26 @@ export function Builder() {
 
   useEffect(() => {
     setKeys(readStoredKeys());
+  }, []);
+
+  // A local Claude Code install is offered only where the server actually has
+  // one, so the picker never advertises a generator that cannot run.
+  useEffect(() => {
+    let cancelled = false;
+    void fetch("/api/build/generators")
+      .then((response) => (response.ok ? response.json() : null))
+      .then((body: unknown) => {
+        if (cancelled || !body || typeof body !== "object") return;
+        const claudeCode = (body as { claudeCode?: { models?: LocalGenerator[] } }).claudeCode;
+        const models = claudeCode?.models ?? [];
+        if (models.length === 0) return;
+        setLocalGenerators(models);
+        setModelKey((current) => (current === DEFAULT_MODEL ? models[0]!.id : current));
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -203,6 +228,7 @@ export function Builder() {
             onPromptChange={setPrompt}
             modelKey={modelKey}
             onModelChange={setModelKey}
+            localGenerators={localGenerators}
             keys={keys}
             onKeysChange={setKeys}
             onGenerate={() => void generate()}

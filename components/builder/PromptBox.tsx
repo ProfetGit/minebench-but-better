@@ -42,11 +42,14 @@ const PROVIDER_KEY_FIELDS: ReadonlyArray<{
   },
 ];
 
+export type LocalGenerator = { id: string; label: string };
+
 export function PromptBox({
   prompt,
   onPromptChange,
   modelKey,
   onModelChange,
+  localGenerators,
   keys,
   onKeysChange,
   onGenerate,
@@ -57,6 +60,7 @@ export function PromptBox({
   onPromptChange: (value: string) => void;
   modelKey: string;
   onModelChange: (value: string) => void;
+  localGenerators: readonly LocalGenerator[];
   keys: ProviderKeyDraft;
   onKeysChange: (keys: ProviderKeyDraft) => void;
   onGenerate: () => void;
@@ -64,13 +68,16 @@ export function PromptBox({
   error: string | null;
 }) {
   const models = useMemo(() => MODEL_CATALOG.filter((model) => model.enabled !== false), []);
-  const selected = models.find((model) => model.key === modelKey) ?? models[0];
+  const local = localGenerators.find((generator) => generator.id === modelKey) ?? null;
+  const selected = local ? null : models.find((model) => model.key === modelKey) ?? models[0];
   const provider = selected?.provider ?? "openrouter";
   const directProvider =
     provider === "openai" || provider === "anthropic" || provider === "gemini" ? provider : null;
   // A model is reached either with its own provider key or through OpenRouter,
-  // so every field stays available whatever is selected.
+  // so every field stays available whatever is selected. The local CLI needs
+  // neither, because it is already signed in.
   const usedKey: keyof ProviderKeyDraft = directProvider ?? "openrouter";
+  const needsKey = !local && !keys[usedKey];
 
   return (
     <section className="space-y-3" aria-labelledby="prompt-title">
@@ -93,15 +100,26 @@ export function PromptBox({
         <label className="flex-1 text-xs text-muted">
           Model
           <select
-            value={selected?.key ?? ""}
+            value={local?.id ?? selected?.key ?? ""}
             onChange={(event) => onModelChange(event.target.value)}
             className="mt-1 h-9 w-full rounded border border-border/80 bg-card/10 px-2 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
-            {models.map((model) => (
-              <option key={model.key} value={model.key}>
-                {model.displayName}
-              </option>
-            ))}
+            {localGenerators.length > 0 ? (
+              <optgroup label="This machine, no key needed">
+                {localGenerators.map((generator) => (
+                  <option key={generator.id} value={generator.id}>
+                    {generator.label}
+                  </option>
+                ))}
+              </optgroup>
+            ) : null}
+            <optgroup label="API key">
+              {models.map((model) => (
+                <option key={model.key} value={model.key}>
+                  {model.displayName}
+                </option>
+              ))}
+            </optgroup>
           </select>
         </label>
         <button
@@ -114,22 +132,34 @@ export function PromptBox({
         </button>
       </div>
 
-      <details className="rounded border border-border/70 bg-card/10 p-2 text-xs" open={!keys[usedKey]}>
+      {local ? (
+        <p className="rounded border border-border/70 bg-card/10 p-2 text-xs text-muted">
+          {local.label} runs the Claude Code CLI installed on this machine, under
+          the account it is already signed in to. No API key, and the request
+          counts against that account.
+        </p>
+      ) : null}
+
+      <details className="rounded border border-border/70 bg-card/10 p-2 text-xs" open={needsKey}>
         <summary className="cursor-pointer text-muted">
-          API keys{keys[usedKey] ? "" : ` (${PROVIDER_KEY_FIELDS.find((field) => field.id === usedKey)?.label} needed)`}
+          API keys{needsKey ? ` (${PROVIDER_KEY_FIELDS.find((field) => field.id === usedKey)?.label} needed)` : ""}
         </summary>
         <p className="mt-2 text-muted">
           Keys stay in this browser and are sent only with a generation request.
-          {directProvider
-            ? ` ${selected?.displayName ?? "This model"} uses the ${
-                PROVIDER_KEY_FIELDS.find((field) => field.id === directProvider)?.label
-              } key, or OpenRouter if that is blank.`
-            : ` ${selected?.displayName ?? "This model"} is reached through OpenRouter.`}
+          {local
+            ? " The selected generator does not use any of them."
+            : directProvider
+              ? ` ${selected?.displayName ?? "This model"} uses the ${
+                  PROVIDER_KEY_FIELDS.find((field) => field.id === directProvider)?.label
+                } key, or OpenRouter if that is blank.`
+              : ` ${selected?.displayName ?? "This model"} is reached through OpenRouter.`}
         </p>
         <div className="mt-2 space-y-2">
           {PROVIDER_KEY_FIELDS.map((field) => (
             <label key={field.id} className="block text-muted">
-              <span className={field.id === usedKey ? "text-fg" : undefined}>{field.label}</span>
+              <span className={!local && field.id === usedKey ? "text-fg" : undefined}>
+                {field.label}
+              </span>
               <input
                 type="password"
                 autoComplete="off"

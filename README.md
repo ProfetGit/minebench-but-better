@@ -57,6 +57,13 @@ the validation findings, and the export buttons.
 Editing the palette or the budget re-resolves the build in place. Only Generate
 and Run go near a model or the compiler.
 
+Generation runs either against an API key you paste into the page, which stays
+in your browser, or against the Claude Code CLI installed on the machine
+running the server, under the account that CLI is already signed in to. The
+local option needs no key and is offered only where the server actually has the
+CLI. It spawns a process per request, so it is on by default in development and
+off on a deployment unless `MINEBENCH_ENABLE_CLAUDE_CODE=1` says otherwise.
+
 ## Exports
 
 - **Litematica** (`.litematic`) is the primary target. It carries block states

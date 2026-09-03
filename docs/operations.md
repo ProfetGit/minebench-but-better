@@ -57,6 +57,23 @@ limit.
 
 ## API reference
 
+### Generators
+
+`GET /api/build/generators` reports what this server can generate with besides
+a pasted API key. Today that is the Claude Code CLI:
+
+```json
+{ "claudeCode": { "available": true, "models": [{ "id": "claude-code:opus", "label": "Claude Code: Opus" }] } }
+```
+
+A model key starting with `claude-code:` makes `POST /api/build/generate` run
+the local CLI in print mode instead of calling a provider. The prompt goes in on
+stdin, tools are denied, the working directory is a temporary one so the CLI
+cannot read the repository, and the run is capped at one turn and five minutes.
+Because it spawns a process, it is enabled by default only outside production;
+`MINEBENCH_ENABLE_CLAUDE_CODE` overrides that in either direction and
+`MINEBENCH_CLAUDE_CODE_BIN` points at a CLI that is not on PATH as `claude`.
+
 ### Public routes
 
 - `POST /api/generate`

@@ -1,5 +1,11 @@
 import { buildDslSystemPrompt } from "@/lib/ai/dslPrompt";
 import { getModelByKey, type ModelKey } from "@/lib/ai/modelCatalog";
+import {
+  claudeCodeModel,
+  isClaudeCodeModel,
+  parseClaudeCodeOutput,
+  runClaudeCode,
+} from "@/lib/build/claudeCode";
 import { anthropicGenerateText } from "@/lib/ai/providers/anthropic";
 import { geminiGenerateText } from "@/lib/ai/providers/gemini";
 import { openaiGenerateText } from "@/lib/ai/providers/openai";
@@ -13,7 +19,8 @@ export const DEFAULT_DSL_MAX_OUTPUT_TOKENS = 16_000;
 
 export type GenerateDslParams = {
   prompt: string;
-  modelKey: ModelKey;
+  // A catalogue model key, or a claude-code: id served by the local CLI.
+  modelKey: ModelKey | string;
   providerKeys?: ProviderApiKeys;
   availableRoles?: readonly string[];
   budgetSummary?: string;
@@ -23,7 +30,7 @@ export type GenerateDslParams = {
 
 export type GenerateDslResult = {
   source: string;
-  modelKey: ModelKey;
+  modelKey: string;
   provider: string;
   rawText: string;
 };
@@ -38,14 +45,33 @@ export const PROGRAM_SCHEMA = {
 } as const;
 
 export async function generateDslProgram(params: GenerateDslParams): Promise<GenerateDslResult> {
-  const model = getModelByKey(params.modelKey);
-  if (!model) throw new Error(`Unknown model: ${params.modelKey}`);
-
   const system = buildDslSystemPrompt({
     prompt: params.prompt,
     availableRoles: params.availableRoles,
     budgetSummary: params.budgetSummary,
   });
+
+  // The local CLI signs in on its own, so this path needs no key at all.
+  if (isClaudeCodeModel(params.modelKey)) {
+    const local = claudeCodeModel(params.modelKey);
+    if (!local) throw new Error(`Unknown Claude Code model: ${params.modelKey}`);
+    const stdout = await runClaudeCode({
+      prompt: params.prompt,
+      system,
+      alias: local.alias,
+      signal: params.signal,
+    });
+    const text = parseClaudeCodeOutput(stdout);
+    return {
+      source: extractProgram(text),
+      modelKey: params.modelKey,
+      provider: "claude-code",
+      rawText: text,
+    };
+  }
+
+  const model = getModelByKey(params.modelKey as ModelKey);
+  if (!model) throw new Error(`Unknown model: ${params.modelKey}`);
   const maxOutputTokens = params.maxOutputTokens ?? DEFAULT_DSL_MAX_OUTPUT_TOKENS;
   const keys = params.providerKeys ?? {};
 

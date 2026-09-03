@@ -107,7 +107,9 @@ findings panel and the exports. It talks to three routes:
 
 - `POST /api/build/compile` runs the program, resolves it under a palette, runs
   the checks, and returns everything the page draws
-- `POST /api/build/generate` asks a model for a program
+- `POST /api/build/generate` asks a model for a program, either through a
+  provider API with a key from the browser, or through the Claude Code CLI
+  installed on the server when the model key starts with `claude-code:`
 - `POST /api/build/export` runs the same pipeline and returns a file
 
 Palette and budget edits call compile again. Generation is a separate button, so

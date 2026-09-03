@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { MODEL_CATALOG, type ModelKey } from "@/lib/ai/modelCatalog";
+import { claudeCodeEnabled, claudeCodeModel, isClaudeCodeModel } from "@/lib/build/claudeCode";
 import { generateDslProgram } from "@/lib/build/generate";
 import { ROLES } from "@/lib/build/roles";
 import { BUDGET_PRESETS } from "@/lib/palette/budget";
@@ -45,8 +46,33 @@ export async function POST(request: Request) {
     );
   }
 
-  const model = MODEL_CATALOG.find((entry) => entry.key === parsed.data.modelKey);
-  if (!model) {
+  const local = isClaudeCodeModel(parsed.data.modelKey)
+    ? claudeCodeModel(parsed.data.modelKey)
+    : null;
+
+  if (isClaudeCodeModel(parsed.data.modelKey)) {
+    if (!claudeCodeEnabled()) {
+      return Response.json(
+        {
+          error: {
+            code: "claude_code_disabled",
+            message:
+              "Claude Code generation is off on this server. Set MINEBENCH_ENABLE_CLAUDE_CODE=1 to turn it on.",
+          },
+        },
+        { status: 400, headers: { "Cache-Control": "no-store" } },
+      );
+    }
+    if (!local) {
+      return Response.json(
+        { error: { code: "unknown_model", message: "That Claude Code model does not exist." } },
+        { status: 400, headers: { "Cache-Control": "no-store" } },
+      );
+    }
+  }
+
+  const model = local ? null : MODEL_CATALOG.find((entry) => entry.key === parsed.data.modelKey);
+  if (!local && !model) {
     return Response.json(
       { error: { code: "unknown_model", message: "That model is not in the catalogue." } },
       { status: 400, headers: { "Cache-Control": "no-store" } },
@@ -56,7 +82,7 @@ export async function POST(request: Request) {
   try {
     const result = await generateDslProgram({
       prompt: parsed.data.prompt,
-      modelKey: model.key as ModelKey,
+      modelKey: local ? local.id : (model!.key as ModelKey),
       providerKeys: parsed.data.providerKeys,
       availableRoles: parsed.data.roles,
       budgetSummary: budgetSummary(parsed.data.budgetPreset),
@@ -64,13 +90,23 @@ export async function POST(request: Request) {
     });
 
     return Response.json(
-      { source: result.source, model: { key: model.key, displayName: model.displayName } },
+      {
+        source: result.source,
+        model: {
+          key: local ? local.id : model!.key,
+          displayName: local ? local.label : model!.displayName,
+        },
+      },
       { headers: { "Cache-Control": "no-store" } },
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : "Generation failed.";
     // A missing key is the caller's problem to fix; anything else is upstream.
-    const status = message.toLowerCase().includes("api key") || message.startsWith("Missing") ? 400 : 502;
+    const lowered = message.toLowerCase();
+    const status =
+      lowered.includes("api key") || lowered.includes("not installed") || message.startsWith("Missing")
+        ? 400
+        : 502;
     return Response.json(
       { error: { code: status === 400 ? "missing_provider_key" : "generation_failed", message } },
       { status, headers: { "Cache-Control": "no-store" } },
