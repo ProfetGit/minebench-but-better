@@ -10,6 +10,38 @@ export type ProviderKeyDraft = {
   openrouter?: string;
 };
 
+const PROVIDER_KEY_FIELDS: ReadonlyArray<{
+  id: keyof ProviderKeyDraft;
+  label: string;
+  hint: string;
+  placeholder: string;
+}> = [
+  {
+    id: "gemini",
+    label: "Google AI Studio",
+    hint: "aistudio.google.com/apikey, for the Gemini and Gemma models",
+    placeholder: "AIza...",
+  },
+  {
+    id: "anthropic",
+    label: "Anthropic",
+    hint: "console.anthropic.com, for the Claude models",
+    placeholder: "sk-ant-...",
+  },
+  {
+    id: "openai",
+    label: "OpenAI",
+    hint: "platform.openai.com, for the GPT models",
+    placeholder: "sk-...",
+  },
+  {
+    id: "openrouter",
+    label: "OpenRouter",
+    hint: "openrouter.ai/keys, reaches every model in the list",
+    placeholder: "sk-or-...",
+  },
+];
+
 export function PromptBox({
   prompt,
   onPromptChange,
@@ -36,6 +68,9 @@ export function PromptBox({
   const provider = selected?.provider ?? "openrouter";
   const directProvider =
     provider === "openai" || provider === "anthropic" || provider === "gemini" ? provider : null;
+  // A model is reached either with its own provider key or through OpenRouter,
+  // so every field stays available whatever is selected.
+  const usedKey: keyof ProviderKeyDraft = directProvider ?? "openrouter";
 
   return (
     <section className="space-y-3" aria-labelledby="prompt-title">
@@ -79,36 +114,33 @@ export function PromptBox({
         </button>
       </div>
 
-      <details className="rounded border border-border/70 bg-card/10 p-2 text-xs">
-        <summary className="cursor-pointer text-muted">API keys</summary>
+      <details className="rounded border border-border/70 bg-card/10 p-2 text-xs" open={!keys[usedKey]}>
+        <summary className="cursor-pointer text-muted">
+          API keys{keys[usedKey] ? "" : ` (${PROVIDER_KEY_FIELDS.find((field) => field.id === usedKey)?.label} needed)`}
+        </summary>
         <p className="mt-2 text-muted">
           Keys stay in this browser and are sent only with a generation request.
+          {directProvider
+            ? ` ${selected?.displayName ?? "This model"} uses the ${
+                PROVIDER_KEY_FIELDS.find((field) => field.id === directProvider)?.label
+              } key, or OpenRouter if that is blank.`
+            : ` ${selected?.displayName ?? "This model"} is reached through OpenRouter.`}
         </p>
         <div className="mt-2 space-y-2">
-          {directProvider ? (
-            <label className="block text-muted">
-              {directProvider} key
+          {PROVIDER_KEY_FIELDS.map((field) => (
+            <label key={field.id} className="block text-muted">
+              <span className={field.id === usedKey ? "text-fg" : undefined}>{field.label}</span>
               <input
                 type="password"
                 autoComplete="off"
-                value={keys[directProvider] ?? ""}
-                onChange={(event) =>
-                  onKeysChange({ ...keys, [directProvider]: event.target.value })
-                }
+                placeholder={field.placeholder}
+                value={keys[field.id] ?? ""}
+                onChange={(event) => onKeysChange({ ...keys, [field.id]: event.target.value })}
                 className="mt-1 h-8 w-full rounded border border-border/80 bg-card/10 px-2 font-mono text-[11px] text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               />
+              <span className="mt-1 block text-[11px] text-muted">{field.hint}</span>
             </label>
-          ) : null}
-          <label className="block text-muted">
-            OpenRouter key
-            <input
-              type="password"
-              autoComplete="off"
-              value={keys.openrouter ?? ""}
-              onChange={(event) => onKeysChange({ ...keys, openrouter: event.target.value })}
-              className="mt-1 h-8 w-full rounded border border-border/80 bg-card/10 px-2 font-mono text-[11px] text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-            />
-          </label>
+          ))}
         </div>
       </details>
 
