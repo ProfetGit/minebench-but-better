@@ -6,7 +6,8 @@ import { ROLES } from "@/lib/build/roles";
 import { BUDGET_PRESETS } from "@/lib/palette/budget";
 
 export const runtime = "nodejs";
-export const maxDuration = 300;
+// A long Opus run is normal here, so the handler is allowed to wait for one.
+export const maxDuration = 800;
 
 const providerKeysSchema = z
   .object({

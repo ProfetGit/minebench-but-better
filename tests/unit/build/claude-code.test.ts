@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import {
   buildClaudeCodeArgs,
   claudeCodeBinary,
+  claudeCodeTimeoutMs,
+  DEFAULT_CLAUDE_CODE_TIMEOUT_MS,
   claudeCodeEnabled,
   claudeCodeModel,
   CLAUDE_CODE_MODELS,
@@ -38,6 +40,24 @@ assert.equal(claudeCodeBinary({} as unknown as NodeJS.ProcessEnv), "claude");
 assert.equal(
   claudeCodeBinary({ MINEBENCH_CLAUDE_CODE_BIN: "/opt/claude" } as unknown as NodeJS.ProcessEnv),
   "/opt/claude",
+);
+
+// The wait is generous by default, because a measured Opus run on a complex
+// build took 320 seconds, nearly all of it thinking.
+assert.equal(claudeCodeTimeoutMs({} as unknown as NodeJS.ProcessEnv), DEFAULT_CLAUDE_CODE_TIMEOUT_MS);
+assert.ok(DEFAULT_CLAUDE_CODE_TIMEOUT_MS >= 600_000);
+assert.equal(
+  claudeCodeTimeoutMs({ MINEBENCH_CLAUDE_CODE_TIMEOUT_MS: "120000" } as unknown as NodeJS.ProcessEnv),
+  120_000,
+);
+// Out of range values are clamped rather than trusted.
+assert.equal(
+  claudeCodeTimeoutMs({ MINEBENCH_CLAUDE_CODE_TIMEOUT_MS: "5" } as unknown as NodeJS.ProcessEnv),
+  30_000,
+);
+assert.equal(
+  claudeCodeTimeoutMs({ MINEBENCH_CLAUDE_CODE_TIMEOUT_MS: "nonsense" } as unknown as NodeJS.ProcessEnv),
+  DEFAULT_CLAUDE_CODE_TIMEOUT_MS,
 );
 
 // The prompt never reaches argv at all: it goes in on stdin, because

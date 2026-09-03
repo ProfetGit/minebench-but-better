@@ -21,7 +21,12 @@ export const CLAUDE_CODE_MODELS: readonly ClaudeCodeModel[] = [
   { id: `${CLAUDE_CODE_PREFIX}haiku`, label: "Claude Code: Haiku", alias: "haiku" },
 ];
 
-export const DEFAULT_CLAUDE_CODE_TIMEOUT_MS = 300_000;
+// Opus spends most of a run thinking before it writes anything: a measured
+// galleon took 320 seconds and 20k thinking tokens, so a five minute cap cut
+// off work that was about to succeed.
+export const DEFAULT_CLAUDE_CODE_TIMEOUT_MS = 900_000;
+const MIN_CLAUDE_CODE_TIMEOUT_MS = 30_000;
+const MAX_CLAUDE_CODE_TIMEOUT_MS = 3_600_000;
 const MAX_OUTPUT_BYTES = 4 * 1024 * 1024;
 
 export function isClaudeCodeModel(modelKey: string): boolean {
@@ -43,6 +48,12 @@ export function claudeCodeEnabled(env: NodeJS.ProcessEnv = process.env): boolean
 
 export function claudeCodeBinary(env: NodeJS.ProcessEnv = process.env): string {
   return env.MINEBENCH_CLAUDE_CODE_BIN?.trim() || "claude";
+}
+
+export function claudeCodeTimeoutMs(env: NodeJS.ProcessEnv = process.env): number {
+  const raw = Number.parseInt(env.MINEBENCH_CLAUDE_CODE_TIMEOUT_MS?.trim() ?? "", 10);
+  if (!Number.isFinite(raw) || raw <= 0) return DEFAULT_CLAUDE_CODE_TIMEOUT_MS;
+  return Math.max(MIN_CLAUDE_CODE_TIMEOUT_MS, Math.min(MAX_CLAUDE_CODE_TIMEOUT_MS, raw));
 }
 
 // Tools are denied rather than left to the permission prompt, because a print
@@ -146,7 +157,8 @@ export async function runClaudeCode(params: RunClaudeCodeParams): Promise<string
     let stdout = "";
     let stderr = "";
     let settled = false;
-    const timeoutMs = params.timeoutMs ?? DEFAULT_CLAUDE_CODE_TIMEOUT_MS;
+    const startedAt = Date.now();
+    const timeoutMs = params.timeoutMs ?? claudeCodeTimeoutMs(env);
 
     const finish = (error: Error | null, value?: string) => {
       if (settled) return;
@@ -162,7 +174,12 @@ export async function runClaudeCode(params: RunClaudeCodeParams): Promise<string
       finish(new Error(reason));
     };
 
-    const timer = setTimeout(() => kill("Claude Code timed out"), timeoutMs);
+    const timer = setTimeout(() => {
+      const seconds = Math.round((Date.now() - startedAt) / 1000);
+      kill(
+        `Claude Code timed out after ${seconds} seconds. A complex build can take longer than that on Opus; pick a faster model or raise MINEBENCH_CLAUDE_CODE_TIMEOUT_MS.`,
+      );
+    }, timeoutMs);
     const onAbort = () => kill("Generation was cancelled");
     params.signal?.addEventListener("abort", onAbort, { once: true });
 

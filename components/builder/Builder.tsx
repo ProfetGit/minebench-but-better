@@ -47,6 +47,7 @@ export function Builder() {
   const [generateError, setGenerateError] = useState<string | null>(null);
   const [compiling, setCompiling] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [generatingSeconds, setGeneratingSeconds] = useState(0);
   const [exporting, setExporting] = useState<ExportFormat | null>(null);
   const requestId = useRef(0);
 
@@ -129,6 +130,20 @@ export function Builder() {
   const runProgram = useCallback(() => {
     void compile(source, palette, budgetPreset);
   }, [budgetPreset, compile, palette, source]);
+
+  // A capable model spends minutes thinking before it writes anything, so the
+  // page counts the wait rather than looking stuck.
+  useEffect(() => {
+    if (!generating) {
+      setGeneratingSeconds(0);
+      return;
+    }
+    const startedAt = Date.now();
+    const timer = setInterval(() => {
+      setGeneratingSeconds(Math.round((Date.now() - startedAt) / 1000));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [generating]);
 
   const generate = useCallback(async () => {
     setGenerating(true);
@@ -233,6 +248,7 @@ export function Builder() {
             onKeysChange={setKeys}
             onGenerate={() => void generate()}
             busy={generating}
+            busySeconds={generatingSeconds}
             error={generateError}
           />
           <DslSourcePanel

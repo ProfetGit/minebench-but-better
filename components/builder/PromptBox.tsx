@@ -44,6 +44,11 @@ const PROVIDER_KEY_FIELDS: ReadonlyArray<{
 
 export type LocalGenerator = { id: string; label: string };
 
+function formatElapsed(seconds: number): string {
+  const minutes = Math.floor(seconds / 60);
+  return `${minutes}:${String(seconds % 60).padStart(2, "0")}`;
+}
+
 export function PromptBox({
   prompt,
   onPromptChange,
@@ -54,6 +59,7 @@ export function PromptBox({
   onKeysChange,
   onGenerate,
   busy,
+  busySeconds,
   error,
 }: {
   prompt: string;
@@ -65,6 +71,7 @@ export function PromptBox({
   onKeysChange: (keys: ProviderKeyDraft) => void;
   onGenerate: () => void;
   busy: boolean;
+  busySeconds: number;
   error: string | null;
 }) {
   const models = useMemo(() => MODEL_CATALOG.filter((model) => model.enabled !== false), []);
@@ -128,7 +135,7 @@ export function PromptBox({
           onClick={onGenerate}
           disabled={busy || prompt.trim().length < 3}
         >
-          {busy ? "Writing the program" : "Generate"}
+          {busy ? `Writing ${formatElapsed(busySeconds)}` : "Generate"}
         </button>
       </div>
 
@@ -173,6 +180,13 @@ export function PromptBox({
           ))}
         </div>
       </details>
+
+      {busy ? (
+        <p role="status" className="text-xs text-muted">
+          The model thinks before it writes. A detailed build on a large model
+          can take several minutes.
+        </p>
+      ) : null}
 
       {error ? (
         <p role="alert" className="mb-feedback mb-feedback-error text-xs">
