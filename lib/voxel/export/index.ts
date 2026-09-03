@@ -1,4 +1,6 @@
 import type { BlockDefinition } from "@/lib/blocks/palettes";
+import type { ResolvedBlock } from "@/lib/palette/types";
+import { buildLitematic, type LitematicOptions } from "@/lib/voxel/export/litematic";
 import { buildVoxelExportGeometry } from "@/lib/voxel/export/geometry";
 import { buildVoxelGlb } from "@/lib/voxel/export/glb";
 import { buildSpongeSchematic } from "@/lib/voxel/export/schematic";
@@ -7,6 +9,10 @@ import { buildVoxelVox } from "@/lib/voxel/export/vox";
 import type { VoxelBuild } from "@/lib/voxel/types";
 
 export type VoxelBuildExportFormat = "glb" | "stl" | "schem" | "vox";
+
+// Litematica is exported from a resolved build rather than from a VoxelBuild,
+// because it carries block states and a VoxelBuild has none.
+export type ResolvedBuildExportFormat = "litematic";
 
 export type VoxelBuildExportStats = {
   inputBlockCount: number;
@@ -83,3 +89,40 @@ export { buildVoxelGlb } from "@/lib/voxel/export/glb";
 export { buildSpongeSchematic } from "@/lib/voxel/export/schematic";
 export { buildVoxelStl } from "@/lib/voxel/export/stl";
 export { buildVoxelVox } from "@/lib/voxel/export/vox";
+
+export type ResolvedBuildExportArtifact = {
+  bytes: Uint8Array;
+  extension: ResolvedBuildExportFormat;
+  mimeType: string;
+  stats: VoxelBuildExportStats;
+};
+
+export function exportResolvedBuild(
+  blocks: readonly ResolvedBlock[],
+  format: ResolvedBuildExportFormat,
+  options: LitematicOptions = {},
+): ResolvedBuildExportArtifact {
+  const litematic = buildLitematic(blocks, options);
+  return {
+    bytes: litematic.bytes,
+    extension: format,
+    mimeType: "application/octet-stream",
+    stats: {
+      inputBlockCount: blocks.length,
+      exportedBlockCount: litematic.stats.blockCount,
+      width: litematic.stats.width,
+      height: litematic.stats.height,
+      length: litematic.stats.length,
+      volume: litematic.stats.volume,
+      paletteSize: litematic.stats.paletteSize,
+    },
+  };
+}
+
+export {
+  buildLitematic,
+  readLitematic,
+  LITEMATIC_DATA_VERSION,
+  LITEMATIC_SUB_VERSION,
+  LITEMATIC_VERSION,
+} from "@/lib/voxel/export/litematic";

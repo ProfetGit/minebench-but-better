@@ -8,6 +8,7 @@ const TAG_STRING = 8;
 const TAG_LIST = 9;
 const TAG_COMPOUND = 10;
 const TAG_INT_ARRAY = 11;
+const TAG_LONG_ARRAY = 12;
 
 type TagType =
   | typeof TAG_BYTE
@@ -18,7 +19,8 @@ type TagType =
   | typeof TAG_STRING
   | typeof TAG_LIST
   | typeof TAG_COMPOUND
-  | typeof TAG_INT_ARRAY;
+  | typeof TAG_INT_ARRAY
+  | typeof TAG_LONG_ARRAY;
 
 export const NBT_TAG = {
   byte: TAG_BYTE,
@@ -30,6 +32,7 @@ export const NBT_TAG = {
   list: TAG_LIST,
   compound: TAG_COMPOUND,
   intArray: TAG_INT_ARRAY,
+  longArray: TAG_LONG_ARRAY,
 } as const;
 
 export class NbtWriter {
@@ -116,6 +119,24 @@ export class NbtWriter {
     this.writeTagHeader(TAG_INT_ARRAY, name);
     this.writeIntRaw(value.length);
     for (const item of value) this.writeIntRaw(item);
+  }
+
+  // A list of compounds. Each item is written by the callback using the same
+  // named writers, and the compound terminator is appended for it.
+  namedListOfCompounds(name: string, count: number, writeItem: (index: number) => void) {
+    this.writeTagHeader(TAG_LIST, name);
+    this.writeByteRaw(TAG_COMPOUND);
+    this.writeIntRaw(count);
+    for (let index = 0; index < count; index += 1) {
+      writeItem(index);
+      this.writeByteRaw(TAG_END);
+    }
+  }
+
+  namedLongArray(name: string, values: readonly bigint[]) {
+    this.writeTagHeader(TAG_LONG_ARRAY, name);
+    this.writeIntRaw(values.length);
+    for (const value of values) this.writeLongRaw(value);
   }
 
   namedEmptyList(name: string, childType: TagType) {
