@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { getAuthenticatedUserId } from "@/lib/auth/request";
-import { apiJson, apiServiceError } from "@/lib/gallery/api";
+import { apiJson, apiServiceError } from "@/lib/api/response";
 import { retrySavedGeneration } from "@/lib/generations/service";
 
 export const runtime = "nodejs";

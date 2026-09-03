@@ -669,3 +669,13 @@ export function resolveModelSlug(keyOrSlug: string): string {
   );
   return entry?.slug ?? normalized;
 }
+
+// Slug lookups, kept beside the catalogue itself now that the upload catalogue
+// that used to own them is gone.
+export const MODEL_SLUG = Object.fromEntries(
+  MODEL_CATALOG.map((model) => [model.key, model.slug]),
+) as Record<ModelKey, string>;
+
+export const MODEL_KEY_BY_SLUG = Object.fromEntries(
+  (Object.entries(MODEL_SLUG) as [ModelKey, string][]).map(([key, slug]) => [slug, key]),
+) as Record<string, ModelKey>;

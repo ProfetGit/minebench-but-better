@@ -1,13 +1,13 @@
-import {
-  ARENA_MESH_FACTS_MIN_BLOCKS,
-  type ArenaBuildVariant,
-} from "@/lib/arena/types";
+import { MESH_FACTS_MIN_BLOCKS } from "@/lib/voxel/meshFacts";
 import type { VoxelViewerBuildMetrics } from "@/components/voxel/VoxelViewer";
 import type { ClientMetricSample } from "@/lib/observability/customMetrics";
 import {
-  getArenaBlockCountBucket,
+  getBlockCountBucket,
   roundMetricMs,
-} from "@/lib/observability/arenaMetrics";
+} from "@/lib/observability/metricBuckets";
+
+type BuildVariant = "preview" | "full";
+type MetricSurface = "builder" | "viewer";
 
 const MAX_BATCH_SIZE = 50;
 const FLUSH_DELAY_MS = 1_000;
@@ -42,26 +42,9 @@ export function enqueueClientMetric(sample: ClientMetricSample) {
   }
 }
 
-export function enqueueMatchupStageMetric(params: {
-  stage: "preview_ready" | "vote_ready";
-  mode: "random" | "forced";
-  laneABlocks: number;
-  laneBBlocks: number;
-  durationMs: number | null;
-}) {
-  enqueueClientMetric({
-    kind: "matchup-stage",
-    stage: params.stage,
-    mode: params.mode,
-    laneABlocks: getArenaBlockCountBucket(params.laneABlocks),
-    laneBBlocks: getArenaBlockCountBucket(params.laneBBlocks),
-    durationMs: roundMetricMs(params.durationMs),
-  });
-}
-
 export function enqueueVoxelMetric(
-  surface: "arena" | "sandbox" | "leaderboard",
-  variant: ArenaBuildVariant,
+  surface: MetricSurface,
+  variant: BuildVariant,
   metrics: VoxelViewerBuildMetrics,
 ) {
   enqueueClientMetric({
@@ -70,8 +53,8 @@ export function enqueueVoxelMetric(
     variant,
     strategy: metrics.strategy,
     cacheStatus: metrics.cacheStatus,
-    blockCountBucket: getArenaBlockCountBucket(metrics.inputBlockCount),
-    renderedBlockCountBucket: getArenaBlockCountBucket(metrics.renderedBlockCount),
+    blockCountBucket: getBlockCountBucket(metrics.inputBlockCount),
+    renderedBlockCountBucket: getBlockCountBucket(metrics.renderedBlockCount),
     animated: metrics.animated,
     queueMs: roundMetricMs(metrics.queueMs),
     atlasMs: roundMetricMs(metrics.atlasMs),
@@ -81,71 +64,5 @@ export function enqueueVoxelMetric(
     firstRenderMs: roundMetricMs(metrics.firstRenderMs),
     revealMs: roundMetricMs(metrics.revealMs),
     totalMs: roundMetricMs(metrics.totalMs),
-  });
-}
-
-export function normalizeDeliverySource(
-  response: Response,
-): "artifact" | "live" | "artifact-required" | "artifact-redirect" | "response-cache" | "unknown" {
-  const source =
-    response.headers.get("x-build-source") ?? response.headers.get("x-build-stream-source");
-  if (source === "artifact") return "artifact";
-  if (source === "live") return "live";
-  if (source === "artifact-required") return "artifact-required";
-  if (source === "artifact-redirect") return "artifact-redirect";
-  if (source?.startsWith("response-cache:")) return "response-cache";
-  if (response.redirected) return "artifact-redirect";
-  return "unknown";
-}
-
-export function enqueueDeliveryMetric(params: {
-  surface: "arena" | "sandbox" | "leaderboard";
-  purpose?: "visible" | "prefetch";
-  variant: ArenaBuildVariant;
-  transport: "snapshot" | "stream-artifact" | "stream-live";
-  requestedFormat: "mbf1" | "v4" | "json" | "ndjson";
-  servedFormat: "mesh-facts" | "binary" | "json" | "ndjson";
-  response: Response;
-  blockCount: number;
-  totalMs: number | null;
-  headersMs?: number | null;
-  bodyMs?: number | null;
-  inflateMs?: number | null;
-  decodeMs?: number | null;
-  bodyBytes?: number | null;
-  compressed?: boolean;
-}) {
-  const source = normalizeDeliverySource(params.response);
-  const encoding = (
-    params.response.headers.get("content-encoding") ??
-    params.response.headers.get("x-build-content-encoding") ??
-    ""
-  ).toLowerCase();
-  const isGzip = encoding.includes("gzip");
-  const compressed = Boolean(params.compressed || isGzip);
-  const optimized =
-    ((params.requestedFormat === "mbf1" &&
-      params.servedFormat ===
-        (params.blockCount >= ARENA_MESH_FACTS_MIN_BLOCKS ? "mesh-facts" : "binary")) ||
-      (params.requestedFormat === "v4" && params.servedFormat === "binary")) &&
-    (source === "artifact" || source === "artifact-redirect");
-  enqueueClientMetric({
-    kind: "delivery",
-    surface: params.surface,
-    purpose: params.purpose ?? "visible",
-    variant: params.variant,
-    transport: params.transport,
-    requestedFormat: params.requestedFormat,
-    servedFormat: params.servedFormat,
-    delivery_source: source,
-    blockCountBucket: getArenaBlockCountBucket(params.blockCount),
-    compressed,
-    optimized,
-    headersMs: roundMetricMs(params.headersMs),
-    bodyMs: roundMetricMs(params.bodyMs),
-    inflateMs: roundMetricMs(params.inflateMs),
-    decodeMs: roundMetricMs(params.decodeMs),
-    totalMs: roundMetricMs(params.totalMs),
-    bodyBytes: params.bodyBytes ?? null,
   });
 }

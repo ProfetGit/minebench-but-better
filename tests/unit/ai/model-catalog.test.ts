@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { MODEL_CATALOG } from "../../../lib/ai/modelCatalog";
-import { MODEL_KEY_BY_SLUG, MODEL_SLUG } from "../../../scripts/uploadsCatalog";
+import { MODEL_KEY_BY_SLUG, MODEL_SLUG } from "../../../lib/ai/modelCatalog";
 
 // Catalog identity invariants: every key and slug is unique, and no model ID
 // collides with another entry's ID in either route namespace. A model may use

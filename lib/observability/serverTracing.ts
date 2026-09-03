@@ -5,7 +5,7 @@ import {
   type Span,
 } from "@opentelemetry/api";
 
-const tracer = trace.getTracer("minebench.arena");
+const tracer = trace.getTracer("minebench.app");
 
 export function setActiveServerSpanAttributes(attributes: Attributes) {
   trace.getActiveSpan()?.setAttributes(attributes);

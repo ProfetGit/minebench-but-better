@@ -4,11 +4,10 @@ import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
-  ARENA_SESSION_COOKIE,
-  ARENA_SESSION_COOKIE_OPTIONS,
-} from "@/lib/arena/session";
+  PUBLIC_SESSION_COOKIE,
+  PUBLIC_SESSION_COOKIE_OPTIONS,
+} from "@/lib/publicSession";
 import { hasSupabaseAuthCookie } from "@/lib/auth/cookies";
-import { claimAnonymousGalleryVotes } from "@/lib/gallery/service";
 
 export { hasSupabaseAuthCookie } from "@/lib/auth/cookies";
 
@@ -18,8 +17,6 @@ export type PublicAccount = {
   displayName: string | null;
   publicNickname: string | null;
   isMineBenchAdmin: boolean;
-  gallerySuspendedAt: Date | null;
-  gallerySuspensionReason: string | null;
   hostedGenerationCount: number;
   hostedGenerationLimit: number;
   createdAt: Date;
@@ -37,8 +34,6 @@ const publicAccountSelect = {
   displayName: true,
   publicNickname: true,
   isMineBenchAdmin: true,
-  gallerySuspendedAt: true,
-  gallerySuspensionReason: true,
   hostedGenerationCount: true,
   hostedGenerationLimit: true,
   createdAt: true,
@@ -84,8 +79,6 @@ export async function syncAuthUser(authUser: SupabaseAuthUser): Promise<PublicAc
       "displayName",
       "publicNickname",
       "isMineBenchAdmin",
-      "gallerySuspendedAt",
-      "gallerySuspensionReason",
       "hostedGenerationCount",
       "hostedGenerationLimit",
       "createdAt"
@@ -128,27 +121,17 @@ export async function getCurrentAccountSecurity(): Promise<AccountSecurity | nul
   };
 }
 
-export async function claimAnonymousPublicVotes(
+// An anonymous browser session becomes the account's once they sign in, so
+// presence carries over instead of showing two people.
+export async function claimAnonymousSession(
   userId: string,
   sessionId: string | null,
-): Promise<number> {
-  if (!sessionId) return 0;
-  const [arena, gallery] = await Promise.all([
-    prisma.vote.updateMany({
-      where: {
-        userId: null,
-        sessionId,
-        matchup: { stealthVariantId: null },
-      },
-      data: { userId },
-    }),
-    claimAnonymousGalleryVotes(userId, sessionId),
-    prisma.publicSessionActivity.updateMany({
-      where: { sessionId },
-      data: { userId },
-    }),
-  ]);
-  return arena.count + gallery;
+): Promise<void> {
+  if (!sessionId) return;
+  await prisma.publicSessionActivity.updateMany({
+    where: { sessionId },
+    data: { userId },
+  });
 }
 
 async function clearLocalAuthSession(): Promise<void> {
@@ -160,7 +143,7 @@ async function clearLocalAuthSession(): Promise<void> {
 
 export async function finishPublicSignIn(
   authUser: SupabaseAuthUser,
-): Promise<{ account: PublicAccount; claimedVotes: number } | null> {
+): Promise<{ account: PublicAccount } | null> {
   try {
     const account = await syncAuthUser(authUser);
     if (!account) {
@@ -169,19 +152,19 @@ export async function finishPublicSignIn(
     }
 
     const cookieStore = await cookies();
-    const claimedVotes = await claimAnonymousPublicVotes(
+    await claimAnonymousSession(
       account.id,
-      cookieStore.get(ARENA_SESSION_COOKIE)?.value ?? null,
+      cookieStore.get(PUBLIC_SESSION_COOKIE)?.value ?? null,
     );
-    cookieStore.set(ARENA_SESSION_COOKIE, crypto.randomUUID(), ARENA_SESSION_COOKIE_OPTIONS);
-    return { account, claimedVotes };
+    cookieStore.set(PUBLIC_SESSION_COOKIE, crypto.randomUUID(), PUBLIC_SESSION_COOKIE_OPTIONS);
+    return { account };
   } catch (error) {
     await clearLocalAuthSession();
     throw error;
   }
 }
 
-export async function rotateArenaSession(): Promise<void> {
+export async function rotatePublicSession(): Promise<void> {
   const cookieStore = await cookies();
-  cookieStore.set(ARENA_SESSION_COOKIE, crypto.randomUUID(), ARENA_SESSION_COOKIE_OPTIONS);
+  cookieStore.set(PUBLIC_SESSION_COOKIE, crypto.randomUUID(), PUBLIC_SESSION_COOKIE_OPTIONS);
 }

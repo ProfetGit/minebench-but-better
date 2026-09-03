@@ -7,7 +7,7 @@ import {
   finishPublicSignIn,
   hasAuthenticationMethod,
   isPasswordRecoveryMethod,
-  rotateArenaSession,
+  rotatePublicSession,
   syncAuthUser,
 } from "@/lib/auth/account";
 import { getRequestOrigin, safeNextPath } from "@/lib/auth/redirects";
@@ -238,7 +238,7 @@ export async function signOutAccount(): Promise<never> {
     const supabase = await createSupabaseServerClient();
     await supabase.auth.signOut();
   } finally {
-    await rotateArenaSession();
+    await rotatePublicSession();
   }
   redirect("/sign-in?notice=signed-out");
 }

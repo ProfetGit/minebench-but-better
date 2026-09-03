@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { GenerateModelRequest, ProviderApiKeys } from "@/lib/ai/types";
 import { getAuthenticatedUserId } from "@/lib/auth/request";
-import { apiJson, apiServiceError } from "@/lib/gallery/api";
+import { apiJson, apiServiceError } from "@/lib/api/response";
 import { createSavedGenerations, listSavedGenerations } from "@/lib/generations/service";
 
 export const runtime = "nodejs";

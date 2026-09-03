@@ -644,20 +644,9 @@ export async function removeSavedGeneration(
     select: {
       id: true,
       promptText: true,
-      galleryExamples: {
-        where: { removedAt: null },
-        select: { id: true, candidateId: true },
-      },
     },
   });
   if (!build) throw new GenerationServiceError("not_found", "Saved generation not found.");
-  if (build.galleryExamples.length > 0 && !options.acknowledgePublicExamples) {
-    throw new GenerationServiceError(
-      "public_examples_require_confirmation",
-      "Removing this generation will also remove its Gallery examples.",
-      { publicExampleCount: build.galleryExamples.length },
-    );
-  }
 
   const now = new Date();
   const purgeAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
@@ -708,25 +697,6 @@ export async function removeSavedGeneration(
       });
       await tx.customBuildSecret.deleteMany({ where: { customBuildId: build.id } });
     }
-    await tx.galleryExample.updateMany({
-      where: { customBuildId: build.id, removedAt: null },
-      data: { removedAt: now, purgeAt },
-    });
-    for (const example of build.galleryExamples) {
-      await tx.galleryModerationRecord.create({
-        data: {
-          kind: "ADMIN_ACTION",
-          target: "EXAMPLE",
-          action: "generation_removed",
-          actorUserId: ownerId,
-          subjectUserId: ownerId,
-          candidateId: example.candidateId,
-          exampleId: example.id,
-          safeSnapshot: { prompt: build.promptText },
-          purgeAt,
-        },
-      });
-    }
     return tx.customBuildArtifact.findMany({
       where: { customBuildId: build.id },
       select: { id: true, bucket: true, path: true },
@@ -766,5 +736,5 @@ export async function removeSavedGeneration(
       },
     });
   }
-  return { removed: true, publicExamplesRemoved: build.galleryExamples.length };
+  return { removed: true };
 }

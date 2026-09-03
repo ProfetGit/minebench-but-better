@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { PointerLockControls } from "three/examples/jsm/controls/PointerLockControls.js";
@@ -8,15 +7,8 @@ import { Lensflare, LensflareElement } from "three/examples/jsm/objects/Lensflar
 import { BloomPass } from "three/examples/jsm/postprocessing/BloomPass.js";
 import { FullScreenQuad } from "three/examples/jsm/postprocessing/Pass.js";
 import { CopyShader } from "three/examples/jsm/shaders/CopyShader.js";
-import {
-  readBuildVariantPayload,
-  readBuildVariantStream,
-  type BuildVariantStreamResponse,
-} from "@/lib/arena/clientBuildResponse";
-import { readClientErrorResponse } from "@/lib/clientErrorResponse";
 import { getPalette } from "@/lib/blocks/palettes";
 import { VOXEL_VIEWER_WEBGL_ERROR } from "@/lib/voxel/errors";
-import { parseExplorerBuildId } from "@/lib/voxel/explorerBuildId";
 import {
   EXPLORER_EYE_HEIGHT,
   createExplorerCollisionWorld,
@@ -80,10 +72,6 @@ const STARS_PER_LAYER = 560;
 let explorerAtlasPromise: Promise<THREE.Texture> | null = null;
 
 type LoadedBuild = Pick<VoxelExplorerBuild, "checksum" | "palette" | "voxelBuild">;
-type ExplorerBuildOption = Pick<
-  VoxelExplorerBuild,
-  "id" | "model" | "prompt" | "blockCount" | "source"
->;
 
 function loadAtlasTexture(): Promise<THREE.Texture> {
   if (explorerAtlasPromise) return explorerAtlasPromise;
@@ -95,81 +83,6 @@ function loadAtlasTexture(): Promise<THREE.Texture> {
   });
   explorerAtlasPromise = promise;
   return promise;
-}
-
-async function fetchStreamBuild(
-  buildId: string,
-  signal: AbortSignal,
-): Promise<BuildVariantStreamResponse> {
-  const url = new URL(
-    `/api/arena/builds/${encodeURIComponent(buildId)}/stream`,
-    window.location.origin,
-  );
-  url.searchParams.set("variant", "full");
-  const response = await fetch(url, { signal });
-  if (!response.ok) {
-    throw new Error(await readClientErrorResponse(response, "Failed to load build"));
-  }
-  if ((response.headers.get("content-type") ?? "").includes("application/x-ndjson")) {
-    return readBuildVariantStream(response, { signal });
-  }
-  return (
-    await readBuildVariantPayload(response, {
-      fallbackIdentity: { buildId, variant: "full", checksum: null },
-    })
-  ).payload;
-}
-
-async function fetchExplorerBuild(buildId: string, signal: AbortSignal): Promise<LoadedBuild> {
-  const target = parseExplorerBuildId(buildId);
-  if (target.source === "gallery") {
-    const response = await fetch(
-      `/api/gallery/examples/${encodeURIComponent(target.id)}/viewer`,
-      { signal },
-    );
-    if (!response.ok) {
-      throw new Error(await readClientErrorResponse(response, "Failed to load build"));
-    }
-    const payload = (
-      await readBuildVariantPayload(response, {
-        fallbackIdentity: { buildId, variant: "full", checksum: null },
-      })
-    ).payload;
-    return { checksum: payload.checksum, palette: "advanced", voxelBuild: payload.voxelBuild };
-  }
-
-  const url = new URL(
-    `/api/arena/builds/${encodeURIComponent(target.id)}`,
-    window.location.origin,
-  );
-  url.searchParams.set("variant", "full");
-  url.searchParams.set("format", "mbf1");
-  const response = await fetch(url, { signal });
-  let payload: BuildVariantStreamResponse;
-  if (response.ok) {
-    payload = (
-      await readBuildVariantPayload(response, {
-        fallbackIdentity: { buildId, variant: "full", checksum: null },
-      })
-    ).payload;
-  } else if (response.status === 503) {
-    payload = await fetchStreamBuild(target.id, signal);
-  } else {
-    throw new Error(await readClientErrorResponse(response, "Failed to load build"));
-  }
-  return { checksum: payload.checksum, palette: "simple", voxelBuild: payload.voxelBuild };
-}
-
-async function fetchExplorerBuildCatalog(signal: AbortSignal): Promise<ExplorerBuildOption[]> {
-  const response = await fetch("/api/sandbox/explorer-builds", { signal });
-  const body = (await response.json()) as {
-    builds?: ExplorerBuildOption[];
-    error?: string;
-  };
-  if (!response.ok || !Array.isArray(body.builds)) {
-    throw new Error(body.error ?? "Builds unavailable");
-  }
-  return body.builds;
 }
 
 function createSunHaloTexture(): THREE.Texture {
@@ -282,145 +195,6 @@ function deterministicUnit(index: number, salt: number): number {
   return value - Math.floor(value);
 }
 
-function ExplorerBuildMenu({
-  currentBuildId,
-  pinnedBuild,
-  onClose,
-  onSelect,
-}: {
-  currentBuildId: string;
-  pinnedBuild?: ExplorerBuildOption;
-  onClose: () => void;
-  onSelect: (buildId: string) => void;
-}) {
-  const [builds, setBuilds] = useState<ExplorerBuildOption[] | null>(null);
-  const [query, setQuery] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [attempt, setAttempt] = useState(0);
-
-  useEffect(() => {
-    if (builds) return;
-    const controller = new AbortController();
-    setError(null);
-    void fetchExplorerBuildCatalog(controller.signal).then(
-      setBuilds,
-      (loadError: unknown) => {
-        if (loadError instanceof DOMException && loadError.name === "AbortError") return;
-        setError(loadError instanceof Error ? loadError.message : "Builds unavailable");
-      },
-    );
-    return () => controller.abort();
-  }, [attempt, builds]);
-
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
-  }, [onClose]);
-
-  const availableBuilds = useMemo(() => {
-    if (!pinnedBuild || builds?.some((build) => build.id === pinnedBuild.id)) return builds;
-    return [pinnedBuild, ...(builds ?? [])];
-  }, [builds, pinnedBuild]);
-
-  const filteredBuilds = useMemo(() => {
-    if (!availableBuilds) return [];
-    const tokens = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
-    if (tokens.length === 0) return availableBuilds;
-    return availableBuilds.filter((build) => {
-      const searchable = `${build.source} ${build.model} ${build.prompt}`.toLowerCase();
-      return tokens.every((token) => searchable.includes(token));
-    });
-  }, [availableBuilds, query]);
-
-  return (
-    <aside className="absolute inset-y-3 right-3 flex w-[min(28rem,calc(100%-1.5rem))] flex-col overflow-hidden rounded-md border border-white/10 bg-slate-950/90 text-white shadow-2xl backdrop-blur-md">
-      <div className="flex items-center justify-between gap-4 border-b border-white/10 px-4 py-3">
-        <div>
-          <h2 className="text-sm font-semibold">Builds</h2>
-          {availableBuilds ? (
-            <p className="mt-0.5 text-[11px] text-white/50">
-              {filteredBuilds.length === availableBuilds.length
-                ? `${availableBuilds.length.toLocaleString()} available`
-                : `${filteredBuilds.length.toLocaleString()} matches`}
-            </p>
-          ) : null}
-        </div>
-        <button
-          type="button"
-          onClick={onClose}
-          className="min-h-10 rounded px-3 text-xs font-medium text-white/65 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/65 motion-reduce:transition-none"
-        >
-          Close
-        </button>
-      </div>
-
-      <div className="border-b border-white/10 p-3">
-        <input
-          autoFocus
-          type="search"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder="Search builds…"
-          aria-label="Search builds"
-          className="h-10 w-full rounded border border-white/15 bg-white/[0.08] px-3 text-sm text-white outline-none placeholder:text-white/35 focus:border-white/40 focus:ring-2 focus:ring-white/15"
-        />
-      </div>
-
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2">
-        {!builds && !error ? (
-          <p className="px-3 py-8 text-center text-xs text-white/50">Loading</p>
-        ) : null}
-        {error ? (
-          <div className="flex flex-col items-center gap-3 px-3 py-8 text-center">
-            <p className="text-xs text-white/60">{error}</p>
-            <button
-              type="button"
-              onClick={() => setAttempt((value) => value + 1)}
-              className="min-h-10 rounded bg-white/10 px-4 text-xs font-semibold text-white hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/65"
-            >
-              Retry
-            </button>
-          </div>
-        ) : null}
-        {availableBuilds && filteredBuilds.length === 0 ? (
-          <p className="px-3 py-8 text-center text-xs text-white/50">No matches</p>
-        ) : null}
-        {filteredBuilds.map((build) => {
-          const current = build.id === currentBuildId;
-          return (
-            <button
-              key={build.id}
-              type="button"
-              aria-current={current ? "page" : undefined}
-              onClick={() => current ? onClose() : onSelect(build.id)}
-              className={`mb-1 block w-full rounded px-3 py-2.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/65 motion-reduce:transition-none ${
-                current ? "bg-white/15" : "hover:bg-white/[0.08]"
-              }`}
-            >
-              <span className="flex items-center justify-between gap-3 text-[11px] font-semibold text-white/80">
-                <span className="truncate">{build.model}</span>
-                <span className="shrink-0 tabular-nums text-white/40">
-                  {build.source === "gallery"
-                    ? "Gallery · "
-                    : build.source === "current"
-                      ? "Current · "
-                      : ""}
-                  {build.blockCount.toLocaleString()} blocks
-                </span>
-              </span>
-              <span className="mt-1 line-clamp-2 block text-xs leading-relaxed text-white/55">
-                {build.prompt}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-    </aside>
-  );
-}
 
 type ExplorerMeteor = {
   sprite: THREE.Sprite;
@@ -664,20 +438,13 @@ function hasKey(keys: Set<string>, left: string, right?: string): boolean {
 
 function ExplorerScene({
   build,
-  buildId,
-  pinnedBuild,
-  onSelectBuild,
   onExit,
 }: {
   build: LoadedBuild;
-  buildId: string;
-  pinnedBuild?: ExplorerBuildOption;
-  onSelectBuild: (buildId: string) => void;
   onExit: () => void;
 }) {
   const mountRef = useRef<HTMLDivElement | null>(null);
   const startRef = useRef<(() => void) | null>(null);
-  const browseButtonRef = useRef<HTMLButtonElement | null>(null);
   const [ready, setReady] = useState(false);
   const [locked, setLocked] = useState(false);
   const [entered, setEntered] = useState(false);
@@ -686,7 +453,6 @@ function ExplorerScene({
   const [fps, setFps] = useState(0);
   const [loading, setLoading] = useState("Building");
   const [error, setError] = useState<string | null>(null);
-  const [buildMenuOpen, setBuildMenuOpen] = useState(false);
   const meshCacheKey = useMemo(
     () =>
       createPublicMeshCacheKey({
@@ -699,14 +465,6 @@ function ExplorerScene({
   );
 
   const enter = useCallback(() => startRef.current?.(), []);
-  const closeBuildMenu = useCallback(() => {
-    setBuildMenuOpen(false);
-    window.requestAnimationFrame(() => browseButtonRef.current?.focus());
-  }, []);
-  const selectBuild = useCallback((nextBuildId: string) => {
-    setBuildMenuOpen(false);
-    onSelectBuild(nextBuildId);
-  }, [onSelectBuild]);
 
   useEffect(() => {
     const mount = mountRef.current;
@@ -1363,14 +1121,7 @@ function ExplorerScene({
 
       {!locked ? (
         <div className="absolute inset-0 bg-slate-950/20">
-          {buildMenuOpen ? (
-            <ExplorerBuildMenu
-              currentBuildId={buildId}
-              pinnedBuild={pinnedBuild}
-              onClose={closeBuildMenu}
-              onSelect={selectBuild}
-            />
-          ) : (
+          {(
             <div className="flex h-full items-center justify-center">
               <div className="flex flex-col items-center gap-3 rounded-md bg-slate-950/70 px-6 py-5 text-white backdrop-blur-sm">
                 {error ? (
@@ -1385,14 +1136,6 @@ function ExplorerScene({
                     {ready ? (entered ? "Resume" : "Enter") : loading}
                   </button>
                 )}
-                <button
-                  ref={browseButtonRef}
-                  type="button"
-                  onClick={() => setBuildMenuOpen(true)}
-                  className="text-xs font-medium text-white/65 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/65"
-                >
-                  Builds
-                </button>
                 <button
                   type="button"
                   onClick={onExit}
@@ -1409,66 +1152,10 @@ function ExplorerScene({
   );
 }
 
-function useExplorerBuild(buildId: string, initialBuild?: VoxelExplorerBuild) {
-  const [build, setBuild] = useState<LoadedBuild | null>(
-    buildId === initialBuild?.id ? initialBuild : null,
-  );
-  const [error, setError] = useState<string | null>(null);
-  useEffect(() => {
-    if (buildId === initialBuild?.id) {
-      setBuild(initialBuild);
-      setError(null);
-      return;
-    }
-    const controller = new AbortController();
-    setBuild(null);
-    setError(null);
-    void fetchExplorerBuild(buildId, controller.signal).then(
-      setBuild,
-      (loadError: unknown) => {
-        if (loadError instanceof DOMException && loadError.name === "AbortError") return;
-        setError(loadError instanceof Error ? loadError.message : "Failed to load build");
-      },
-    );
-    return () => controller.abort();
-  }, [buildId, initialBuild]);
-  return { build, error };
-}
-
-export function VoxelExplorer({ buildId }: { buildId: string }) {
-  const router = useRouter();
-  const { build, error } = useExplorerBuild(buildId);
-  const selectBuild = useCallback(
-    (nextBuildId: string) => router.push(`/sandbox/explore/${encodeURIComponent(nextBuildId)}`),
-    [router],
-  );
-  const exit = useCallback(() => router.push("/sandbox"), [router]);
-
-  return (
-    <div className="fixed inset-0 z-[100] bg-[oklch(0.86_0.055_235)]">
-      {build ? (
-        <ExplorerScene
-          build={build}
-          buildId={buildId}
-          onSelectBuild={selectBuild}
-          onExit={exit}
-        />
-      ) : (
-        <div className="flex h-full flex-col items-center justify-center gap-4 text-sm font-semibold text-slate-800">
-          <p>{error ?? "Loading"}</p>
-          {error ? (
-            <button
-              type="button"
-              className="rounded border border-slate-400 px-4 py-2 text-xs"
-              onClick={exit}
-            >
-              Exit
-            </button>
-          ) : null}
-        </div>
-      )}
-    </div>
-  );
+function useExplorerBuild(initialBuild: VoxelExplorerBuild) {
+  // The explorer walks a build that is already in memory. It used to fetch
+  // arena builds by id; there is no build catalogue to browse any more.
+  return { build: initialBuild as LoadedBuild, error: null as string | null };
 }
 
 export function VoxelExplorerOverlay({
@@ -1478,31 +1165,17 @@ export function VoxelExplorerOverlay({
   initialBuild: VoxelExplorerBuild;
   onExit: () => void;
 }) {
-  const [buildId, setBuildId] = useState(initialBuild.id);
-  const { build, error } = useExplorerBuild(buildId, initialBuild);
+  const { build, error } = useExplorerBuild(initialBuild);
 
   return (
     <div className="fixed inset-0 z-[100] bg-[oklch(0.86_0.055_235)]">
       {build ? (
-        <ExplorerScene
-          build={build}
-          buildId={buildId}
-          pinnedBuild={initialBuild}
-          onSelectBuild={setBuildId}
-          onExit={onExit}
-        />
+        <ExplorerScene build={build} onExit={onExit} />
       ) : (
         <div className="flex h-full flex-col items-center justify-center gap-4 text-sm font-semibold text-slate-800">
           <p>{error ?? "Loading"}</p>
           {error ? (
             <div className="flex gap-2">
-              <button
-                type="button"
-                className="rounded bg-slate-900 px-4 py-2 text-xs text-white"
-                onClick={() => setBuildId(initialBuild.id)}
-              >
-                Current build
-              </button>
               <button
                 type="button"
                 className="rounded border border-slate-400 px-4 py-2 text-xs"

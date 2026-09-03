@@ -13,8 +13,10 @@ import {
   MODEL_CATALOG,
   resolveModelDisplayName,
 } from "../../../lib/ai/modelCatalog";
-import { promptCohortId } from "../../../lib/benchmark/promptCohortId";
-import { BENCHMARK_PROMPT_COHORT_ID } from "../../../lib/benchmark/prompts";
+// The prompt cohort the published metrics were measured against. The cohort
+// itself belonged to the benchmark and was removed with it; the identity is
+// pinned here so stale metrics are still rejected.
+const BENCHMARK_PROMPT_COHORT_ID = "prompts-v1:bd8c28367f8a97f2";
 
 const gpt56Luna = getModelBenchmarkProfile("openai_gpt_5_6_luna");
 assert.ok(gpt56Luna, "GPT 5.6 Luna Pro should have benchmark run details");
@@ -121,7 +123,7 @@ assert.deepEqual(
 const identifiedGeneratedMetrics: GeneratedModelBenchmarkMetrics = {
   expectedBuildCount: 15,
   finalizedBuildCount: 15,
-  promptCohortId: promptCohortId(),
+  promptCohortId: BENCHMARK_PROMPT_COHORT_ID,
   inferenceSampleCount: 15,
   completedAttemptTrackingJobCount: 15,
   completedAttemptCount: 20,
@@ -131,11 +133,6 @@ const identifiedGeneratedMetrics: GeneratedModelBenchmarkMetrics = {
   outputCapIsConsistent: true,
   outputCapTokens: 64_000,
 };
-assert.equal(
-  BENCHMARK_PROMPT_COHORT_ID,
-  promptCohortId(),
-  "the browser-safe prompt cohort identity should match the canonical prompt hash",
-);
 assert.equal(
   resolveCurrentGeneratedBenchmarkMetrics(identifiedGeneratedMetrics),
   identifiedGeneratedMetrics,

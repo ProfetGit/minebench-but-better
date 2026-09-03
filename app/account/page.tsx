@@ -1,13 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Suspense } from "react";
 import { signOutAccount } from "@/app/(auth)/actions";
-import { GalleryYours } from "@/components/gallery/GalleryYours";
 import { getCurrentAccount } from "@/lib/auth/account";
-import { listSavedGenerations } from "@/lib/generations/service";
-import { PersonalRanking, PersonalRankingSkeleton } from "./PersonalRanking";
-import { GalleryAccountSettings } from "./GalleryAccountSettings";
 import { MediaExportSettings } from "./MediaExportSettings";
 
 export const dynamic = "force-dynamic";
@@ -24,17 +19,14 @@ export default async function AccountPage({
 }) {
   const account = await getCurrentAccount();
   if (!account) redirect("/sign-in?next=/account");
-  const [params, generations] = await Promise.all([
-    searchParams,
-    listSavedGenerations(account.id),
-  ]);
+  const params = await searchParams;
 
   return (
     <div className="mb-fade-in mx-auto w-full max-w-7xl space-y-10 py-4 sm:py-8">
       <header className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
         <h1 className="font-display text-4xl font-semibold tracking-tight text-fg sm:text-5xl">Account</h1>
         <Link href="/" className="mb-btn mb-btn-primary h-11 self-start sm:self-auto">
-          Keep voting
+          Open the builder
         </Link>
       </header>
 
@@ -56,30 +48,12 @@ export default async function AccountPage({
 
       <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start xl:gap-16">
         <div className="min-w-0 space-y-12">
-          <section className="space-y-4" aria-labelledby="ranking-title">
-            <h2 id="ranking-title" className="text-xl font-semibold tracking-tight text-fg">
-              Your ranking
-            </h2>
-            <Suspense fallback={<PersonalRankingSkeleton />}>
-              <PersonalRanking userId={account.id} />
-            </Suspense>
-          </section>
-
-          <GalleryYours
-            initialItems={generations.items}
-            initialCursor={generations.nextCursor}
-            hasNickname={Boolean(account.publicNickname)}
-            suspended={Boolean(account.gallerySuspendedAt)}
-          />
+          <p className="text-sm text-muted">
+            Your saved builds are listed in the builder.
+          </p>
         </div>
 
         <aside className="space-y-5 lg:sticky lg:top-24">
-          <GalleryAccountSettings
-            publicNickname={account.publicNickname}
-            suspendedAt={account.gallerySuspendedAt?.toISOString() ?? null}
-            suspensionReason={account.gallerySuspensionReason}
-          />
-
           <MediaExportSettings />
 
           <section className="rounded-md border border-border/80 bg-card/10 p-5" aria-labelledby="security-title">

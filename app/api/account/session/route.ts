@@ -1,19 +1,16 @@
-import {
-  claimAnonymousPublicVotes,
-  syncAuthUser,
-} from "@/lib/auth/account";
+import { claimAnonymousSession, syncAuthUser } from "@/lib/auth/account";
 import { getAuthenticatedAuthUser } from "@/lib/auth/request";
 import {
-  appendArenaSessionCookie,
-  readArenaSessionId,
-} from "@/lib/arena/session";
+  appendPublicSessionCookie,
+  readPublicSessionId,
+} from "@/lib/publicSession";
 import { serializeAccount } from "@/lib/account/service";
-import { apiJson, apiServiceError } from "@/lib/gallery/api";
+import { apiJson, apiServiceError } from "@/lib/api/response";
 
 export const runtime = "nodejs";
 
 function rotateSession(response: Response): Response {
-  appendArenaSessionCookie(response, crypto.randomUUID());
+  appendPublicSessionCookie(response, crypto.randomUUID());
   return response;
 }
 
@@ -31,11 +28,11 @@ export async function POST(request: Request) {
         error: { code: "authentication_required", message: "Account unavailable." },
       }, 401);
     }
-    const claimedVotes = await claimAnonymousPublicVotes(
+    await claimAnonymousSession(
       account.id,
-      readArenaSessionId(request.headers.get("cookie")),
+      readPublicSessionId(request.headers.get("cookie")),
     );
-    return rotateSession(apiJson({ account: serializeAccount(account), claimedVotes }));
+    return rotateSession(apiJson({ account: serializeAccount(account) }));
   } catch (error) {
     return apiServiceError(error);
   }

@@ -204,7 +204,7 @@ async function main() {
   const { CustomBuildLeaseLostError } = await import("../../../lib/custom-builds/lease");
 
   assert.ok(
-    generateJobSource.includes("buildGalleryPreviewSvg(canonicalBuild)") &&
+    generateJobSource.includes("buildGenerationPreviewSvg(canonicalBuild)") &&
       generateJobSource.includes("blockCount: canonicalBuild.blocks.length"),
     "static thumbnails should derive from the canonical build rather than the sampled viewer preview",
   );

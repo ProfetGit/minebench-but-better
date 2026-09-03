@@ -1,153 +1,102 @@
+# MineBench
 
-<p align="center">
-  <a href="https://minebench.ai">
-    <img src=".github/assets/readme/minebench-banner.png" style="height: 10em" alt="MineBench banner"/>
-  </a>
-</p>
+**A generator for Minecraft builds you can actually put up in survival.**
 
-<p align="center">
-  <a href="https://minebench.ai"><img alt="Live" src="https://img.shields.io/badge/Live-minebench.ai-0ea5e9?style=flat&logo=vercel&logoColor=white" /></a>
-  <a href="https://alpha.minebench.ai"><img alt="Alpha" src="https://img.shields.io/badge/Alpha-alpha.minebench.ai-f59e0b?style=flat&logo=vercel&logoColor=white" /></a>
-  <a href="https://apps.apple.com/app/minebench/id6803704037"><img alt="App Store" src="https://img.shields.io/badge/App%20Store-iOS-000000?style=flat&logo=apple&logoColor=white" /></a>
-  <a href="https://github.com/Ammaar-Alam/minebench/releases/latest"><img alt="Latest Release" src="https://img.shields.io/github/v/release/Ammaar-Alam/minebench?style=flat&color=22c55e&label=release&display_name=tag" /></a>
-  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-3b82f6?style=flat" /></a>
-</p>
+You describe a build. A model writes a short program that describes its
+structure. A deterministic compiler executes that program into a grid of
+semantic roles, a palette resolves those roles into concrete blocks, a
+validation pass reports anything structurally wrong, and the result renders in
+3D and exports to Litematica.
 
-<p align="center">
-  <a href="docs/README.md"><img alt="Docs" src="https://img.shields.io/badge/Docs-Documentation-6366f1?style=flat" /></a>
-  <a href="https://buymeacoffee.com/ammaaralam"><img alt="Support" src="https://img.shields.io/badge/Support-Buy%20Me%20a%20Coffee-ffdd00?style=flat&logo=buy-me-a-coffee&logoColor=000000" /></a>
-  <a href="https://x.com/minebench_ai"><img alt="MineBench on X" src="https://img.shields.io/badge/X-%40minebench_ai-000000?style=flat&logo=x&logoColor=white" /></a>
-</p>
+This is a fork of [MineBench](https://github.com/Ammaar-Alam/minebench), which
+was a benchmark that ranked models by having them emit raw voxel coordinates
+and voting on the results. The benchmark is gone; the renderer, the export
+path, and the generation plumbing are kept.
 
-<h1 align="center">MineBench</h1>
+## Why a program instead of coordinates
 
-**A benchmark for evaluating AI spatial reasoning through Minecraft-style voxel construction.**
+Emitting block coordinates directly makes error accumulate with the size of the
+build, drifts symmetry, and produces output that cannot be edited or given a
+different palette without generating the whole thing again.
 
-Models are given a natural-language prompt and must produce raw 3D coordinates as JSON. In tool mode, models call `voxel.exec` (minimal primitives: `block`, `box`, `line`) to generate large builds beyond token-only JSON limits. MineBench visualizes the output and ranks models from blind head-to-head votes using a global Bradley-Terry model with uncertainty intervals.
+A program is short, reviewable and re-runnable. `mirrorX` and `repeat` are
+compiler operations, so symmetry is exact by construction rather than something
+the model has to type out twice and get right.
 
-**[Try it live](https://minebench.ai)**
+## The pipeline
 
-![MineBench arena — Opus 4.5 versus Opus 4.6](.github/assets/readme/benchmark-split.gif)
-![MineBench default Arena landing page](.github/assets/readme/arena-landing-page.png)
+```
+prompt + palette constraints
+  -> [1] the model emits a DSL program (structure only, no block ids)
+  -> [2] a deterministic compiler executes it into a grid of roles
+  -> [3] a palette resolver maps roles to concrete blocks
+  -> repair and validation -> render -> export
+```
 
-> [!Note]
-> MineBench is not technically a 'benchmark' as it has no objectively correct answers; it is a take on the <a href="https://arxiv.org/abs/2403.04132">LMSYS Chatbot Arena</a>. Many use MineBench to get the general feel or "vibe" of a model. AI labs may use MineBench to privately A/B test model checkpoints.
+Stages 1 and 2 never see a Minecraft block id. They work in semantic roles such
+as `wall_primary`, `structure_post` and `roof_trim`. Block identity is decided
+last, which is what makes palette swapping, cost budgets and modpack support
+possible without regenerating anything.
 
-## Why MineBench?
+| Stage | Where |
+| --- | --- |
+| DSL runtime and sandbox | `lib/dsl/`, documented in [docs/dsl.md](docs/dsl.md) |
+| Compiler | `lib/compile/` |
+| Palette, ramps, cost budgets | `lib/palette/` |
+| Structural validation | `lib/repair/` |
+| Renderer | `lib/voxel/`, `components/voxel/` |
+| Export | `lib/voxel/export/` |
 
-Most LLM benchmarks test text and raw accuracy. MineBench instead tests whether a model can reason about 3D space. Given a prompt like "a medieval castle with four towers", the model must mentally construct geometry, pick materials, and output thousands of precise block coordinates. No vision model or diffusion – just math and spatial logic.
+## Status
 
-As it turns out, this kind of spatial reasoning correlates strongly with a model's raw general intelligence; the MineBench leaderboard tracks, anecdotally, the same hierarchy that most people observe in real-world usage: the smartest reasoning models are clearly visible when asked to produce visual builds.
+The pipeline, the palette layer, the validation pass and the exporters are in
+place with tests. The builder UI is the next piece of work; the home page is a
+placeholder until it lands.
 
-MineBench, unlike other benchmarks, gives an easy way to visually determine (at least one aspect of) a model's raw intelligence. The ranking system also highlights which models are clearly 'bench-maxed' (i.e. when a model has amazing benchmarks on paper, but clearly lacks in real world usage).
+## Exports
 
-![MineBench arena — two AI models building a medieval castle side-by-side](.github/assets/readme/arena-dark.gif)
+- **Litematica** (`.litematic`) is the primary target. It carries block states
+  and gives the player a material list, which is what the cost budget is for.
+  The format is pinned to schematic version 6 (subversion 1) and was verified
+  against Litematica's own source rather than from memory.
+- Sponge schematic (`.schem`), MagicaVoxel (`.vox`), glTF (`.glb`) and STL.
+- Building Gadgets JSON is a later addition.
 
-## Features
+## Palettes and budgets
 
-* **Arena** — blind head-to-head comparisons of pre-generated builds with confidence-aware ranking
-* **Sandbox** — compare existing builds, generate new ones, or import output from any model
-* **Gallery** — explore community prompts and keep signed-in generations
-* **Leaderboard** — live rankings with win/loss/draw stats across all models
-* **Exports** — save builds as GLB, STL, MagicaVoxel `.vox`, or WorldEdit `.schem`
+A palette maps each role to a block, optionally with a block state, and can
+point a role at a colour ramp ordered by Oklab lightness. Swapping a palette
+re-resolves the existing build without running the model again.
 
-## Documentation
+Budgets measure a build against a cost ceiling and a limit on distinct blocks,
+because a blocklist cannot express that four gold blocks of trim are fine while
+eight hundred as roofing are not. Presets ship for early survival, an
+established base, and creative.
 
-* Full docs index: [`docs/README.md`](docs/README.md)
-* Local development: [`docs/local-development.md`](docs/local-development.md)
-* Operations and API reference: [`docs/operations.md`](docs/operations.md)
-* Gallery and saved generations: [`docs/gallery.md`](docs/gallery.md)
-* Arena ranking: [`docs/arena-ranking-system.md`](docs/arena-ranking-system.md)
-* Build export and imports: [`docs/build-export-import.md`](docs/build-export-import.md)
-
-## Frequently Asked Questions
-
-The full FAQ is available at **[minebench.ai/faq](https://minebench.ai/faq)**. Every answer has a stable link for sharing or citation.
-
-### About MineBench
-
-* [What is MineBench?](https://minebench.ai/faq#what-is-minebench)
-* [How do models actually create the builds?](https://minebench.ai/faq#how-do-models-create-builds)
-* [Why do some models add objects or scenery that were not explicitly requested?](https://minebench.ai/faq#why-do-models-add-extra-scenery)
-
-### Methodology
-
-* [How are models ranked if there is no single correct build?](https://minebench.ai/faq#how-are-models-ranked)
-* [Can models train on MineBench or “benchmax” it?](https://minebench.ai/faq#can-minebench-be-contaminated-or-benchmaxxed)
-* [How do grid size, block limits, and different leaderboard settings work?](https://minebench.ai/faq#how-do-grid-size-block-limits-and-leaderboard-settings-work)
-* [Why not add more prompts, grid sizes, block-limited settings, and other evaluation modes?](https://minebench.ai/faq#why-not-add-more-evaluation-modes)
-* [Are generations one-shot?](https://minebench.ai/faq#are-generations-one-shot)
-* [How does MineBench account for nondeterminism?](https://minebench.ai/faq#how-does-minebench-account-for-nondeterminism)
-* [How does the Gallery shape the benchmark?](https://minebench.ai/faq#how-does-the-gallery-shape-the-benchmark)
-
-### Using MineBench
-
-* [Can I compare different models directly?](https://minebench.ai/faq#can-i-compare-models-directly)
-* [Can models that are not on the official leaderboard be tested?](https://minebench.ai/faq#can-unofficial-models-be-tested)
-* [Why isn't a particular model on the leaderboard?](https://minebench.ai/faq#why-is-a-model-missing)
-* [Can MineBench builds be exported?](https://minebench.ai/faq#can-i-export-builds)
-* [Is MineBench using Minecraft MCP, Blender MCP, or a coding agent?](https://minebench.ai/faq#is-this-minecraft-mcp-blender-mcp-or-a-coding-agent)
-* [How can MineBench be supported or contributed to?](https://minebench.ai/faq#how-can-i-support-or-contribute)
-
-## Supported Models
-
-MineBench currently benchmarks models from OpenAI, Anthropic, Google, Moonshot, DeepSeek, MiniMax, xAI, Z.AI, Qwen, Meta, and any model available through OpenRouter.
-
-![MineBench leaderboard showing model rankings](.github/assets/readme/leaderboard-dark.png)
-
-## Quick Start (Local)
-
-This path lets you run the full app and compare existing builds from `uploads/` without generating new ones.
-
-Prereqs: Node.js `18+`, `pnpm`, Docker.
+## Local development
 
 ```bash
 pnpm install
-cp .env.example .env
-pnpm dev:setup
+pnpm db:up
+pnpm prisma:migrate
+pnpm dev
 ```
 
-In a second terminal:
+See [docs/local-development.md](docs/local-development.md) for the full setup,
+including the environment variables in `.env.example`.
 
 ```bash
-pnpm prompt --import
+pnpm check              # lint, tests and a production build
+pnpm test               # unit, config and repo tests
+pnpm test:integration   # PostgreSQL integration tests
+pnpm dsl:prompt         # regenerate the system prompt from docs/dsl.md
+pnpm catalogue:build    # regenerate the block catalogue from the texture pack
 ```
 
-Then open:
+## Documentation
 
-* `http://localhost:3000/` (Arena)
-* `http://localhost:3000/sandbox`
-* `http://localhost:3000/leaderboard`
+[docs/README.md](docs/README.md) is the index.
 
-For environment variables, live generation, seeding/import workflows, batch generation, API routes, troubleshooting, and deployment, see the docs:
+## License
 
-* [`docs/local-development.md`](docs/local-development.md)
-* [`docs/operations.md`](docs/operations.md)
-* [`docs/deployment.md`](docs/deployment.md)
-
-## Sponsors
-
-A huge thank you to the sponsors helping make MineBench possible:
-
-* **[3D-Agent](https://3d-agent.com)**
-  * AI-powered tools for Blender and 3D workflows
-  * **10% off with code `MINEBENCH10`**
-* **OpenAI**
-* **Anthropic**
-* **Google DeepMind**
-* **Z.ai**
-* **Moonshot AI**
-
-Their support, including API credits, helps fund MineBench evaluations. If you would like to support MineBench yourself, you can **[support us here](https://buymeacoffee.com/ammaaralam)**.
-
-## Contributing
-
-Contributions are welcome! See [CONTRIBUTING.md](.github/CONTRIBUTING.md) for how to add new models, submit benchmark prompts, improve the UI, or fix bugs.
-
-## Licenses
-
-[MIT](LICENSE)
-
-Texture pack: [Faithful](https://faithfulpack.net/) (see `assets/texture-pack/LICENSE.txt`)
-
-Inspired by [MC-Bench](https://github.com/mc-bench) and [VoxelBench](https://voxelbench.ai/)
+MIT. See [LICENSE](LICENSE).

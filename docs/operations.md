@@ -1,58 +1,23 @@
 # MineBench Operations and API Reference
 
-Use this guide for arena behavior, voxel runtime details, import workflows, and API/admin reference.
+Use this guide for generation behaviour, runtime details, and the API surface.
 
-## Benchmark Behavior
+## Generation behaviour
 
-### Arena Settings
+All runtime model generations use `voxel.exec` tool mode today: the model emits
+a tool-call envelope (`tool: voxel.exec` plus JavaScript), MineBench executes
+that code server side, and the artifact stored and rendered is build JSON in
+`version`/`boxes`/`lines`/`blocks` form.
 
-- Grid size: `256`
-- Palette: `simple`
-- Mode: `precise`
+The DSL pipeline in `lib/dsl/`, `lib/compile/` and `lib/palette/` is the
+replacement for that path and is documented in [The build DSL](./dsl.md) and
+[Architecture](./architecture.md). Generation is wired to it as part of the
+builder UI work; until then both exist side by side.
 
-### Matchup Sampling and Voting
+Full runtime notes for the current path: [Voxel Exec Runtime, Conversion, and
+Import Workflows](./voxel-exec-raw-output.md).
 
-- Arena matchups are sampled from pre-seeded builds only.
-- Matchups are selected by lane scheduler:
-  - coverage `40%`
-  - contender `30%`
-  - uncertainty `20%`
-  - exploration `10%`
-- Prompt and model eligibility is based on arena-ready builds (`gridSize=256`, `palette=simple`, `mode=precise`) with at least two enabled models per prompt.
-- New models are prioritized for calibration exposure via low-coverage, high-uncertainty, and low-shownCount weighting, but there is no hard equal-vote-count guarantee.
-- A session cookie (`mb_session`) is used so each session can vote once per matchup.
-- Vote options: `A`, `B`, `TIE`, `BOTH_BAD`.
-- Rating updates:
-  - eligible public `A`, `B`, and `TIE` outcomes enter the global Bradley-Terry leaderboard fit
-  - public ranks use the Bradley-Terry point estimate with 95% confidence intervals shown separately
-  - sequential rating state is retained for matchmaking and private public anchors
-  - `BOTH_BAD` updates `bothBadCount` only and stays out of the skill fit
-
-For formulas and worked examples, see [Arena Ranking System](./arena-ranking-system.md).
-
-### Rate Limiting
-
-Middleware rate limits non-admin API routes to `18 requests / 10 seconds` per `IP + path`.
-
-## Voxel Task Format
-
-Default behavior: all runtime model generations use `voxel.exec` tool mode.
-
-- Models emit a tool-call envelope (`tool: voxel.exec` + JS code).
-- MineBench executes that code server-side and converts it into final voxel build JSON.
-- The artifact we render and store is always build JSON in `version/boxes/lines/blocks` format.
-
-Raw tool-call example:
-
-- [`examples/voxel-exec-tool-call-example.json`](./examples/voxel-exec-tool-call-example.json)
-
-Full pipeline docs:
-
-- [Voxel Exec Runtime, Conversion, and Import Workflows](./voxel-exec-raw-output.md)
-
-Note: non-tool generation exists only as an explicit fallback or dev path, for example `pnpm batch:generate --notools`.
-
-Models produce JSON in this schema:
+### Build JSON schema
 
 ```json
 {
@@ -69,188 +34,82 @@ Models produce JSON in this schema:
 }
 ```
 
-Validation pipeline:
-- expands `boxes` and `lines`
-- normalizes and drops invalid block types
-- drops out-of-bounds coordinates
-- deduplicates final blocks
-- enforces max block limits
+Validation expands `boxes` and `lines`, normalises and drops invalid block
+types, drops out-of-bounds coordinates, deduplicates, and enforces the block
+limits.
 
 Current generation constraints:
+
 - grid sizes: `64`, `256`, `512`
 - minimum blocks: `200`, `500`, `800`
-- max blocks: `196,608`, `2,000,000`, `4,000,000`
-- minimum structural span checks for width, depth, and height
+- maximum blocks: `196,608`, `2,000,000`, `4,000,000`
 
-Block palettes:
-- `simple` and `advanced` are defined in `lib/blocks/palettes.json`
+Render palettes `simple` and `advanced` are defined in
+`lib/blocks/palettes.json`. The block catalogue the palette layer resolves
+against is generated separately with `pnpm catalogue:build`.
 
-## Seeding and Import Workflows
+### Rate limiting
 
-### Option A: Import Local JSON Files from `uploads/`
+Middleware rate limits API routes to `18 requests / 10 seconds` per IP and path,
+with tighter windows for contact submissions and generation creation.
+Parameterised routes share one bucket, so walking through ids does not dodge the
+limit.
 
-```bash
-pnpm prompt
-pnpm prompt --import
-pnpm prompt --import --overwrite
-```
+## API reference
 
-Create a new prompt folder scaffold:
+### Public routes
 
-```bash
-pnpm prompt --init --prompt arcade --text "A classic arcade cabinet with ..."
-```
-
-### Option B: Seed Curated Prompts and Generate Missing Builds via API
-
-Set `ADMIN_TOKEN` in `.env`, restart the dev server, then:
-
-```bash
-# status
-curl -sS "http://localhost:3000/api/admin/status" \
-  -H "Authorization: Bearer $ADMIN_TOKEN"
-
-# prompts + model catalog only (no generation)
-curl -sS -X POST "http://localhost:3000/api/admin/seed?generateBuilds=0" \
-  -H "Authorization: Bearer $ADMIN_TOKEN"
-
-# dry run
-curl -sS -X POST "http://localhost:3000/api/admin/seed?dryRun=1" \
-  -H "Authorization: Bearer $ADMIN_TOKEN"
-
-# generate missing builds in batches (repeat until done=true)
-curl -sS -X POST "http://localhost:3000/api/admin/seed?batchSize=2" \
-  -H "Authorization: Bearer $ADMIN_TOKEN"
-
-# capture current leaderboard rank snapshot (hourly cadence recommended)
-curl -sS -X POST "http://localhost:3000/api/admin/rank-snapshots/capture" \
-  -H "Authorization: Bearer $ADMIN_TOKEN"
-```
-
-At least one provider key must be configured (`OPENROUTER_API_KEY` or a direct provider key) for generation to run.
-
-### Option C: Import External Model Output Directly
-
-Use this to import JSON from ChatGPT web or other tools:
-
-```bash
-curl -sS -X POST "http://localhost:3000/api/admin/import-build?modelKey=openai_gpt_5_2_pro&promptText=$(node -p 'encodeURIComponent(process.argv[1])' 'A medieval stone castle')&overwrite=1" \
-  -H "Authorization: Bearer $ADMIN_TOKEN" \
-  --data-binary "@uploads/castle/castle-gpt-5-2-pro.json"
-```
-
-For large payloads in production (50MB+), use the batch uploader with Supabase Storage enabled:
-
-```bash
-pnpm batch:generate --upload --prompt castle --model gpt-5-2-pro
-```
-
-The script uploads `*.json.gz` directly to Supabase Storage and then calls `/api/admin/import-build` with a small storage reference payload.
-
-Reference prompt template:
-
-- [ChatGPT Web Voxel Prompt Template](./chatgpt-web-voxel-prompt.md)
-
-## API Reference
-
-### Public Routes
-
-- Sandbox comparison:
-  - `/sandbox?models=openai_gpt_5_6_sol,openai_gpt_5_5_pro&promptId=cmk5zdnbr0009kx270qtc8zh3`
-  - `models` preserves the order of two to four distinct model keys
-  - invalid model or prompt values are replaced with the canonical comparison state
-- Leaderboard build:
-  - `/leaderboard/anthropic_claude_opus_5?build=cms0r3yrd001al7adwbzwha24`
-  - invalid or model-mismatched build IDs are removed while the model page remains visible
 - `POST /api/generate`
   - body: `{ prompt, gridSize, palette, modelKeys, providerKeys? }`
-  - response: `application/x-ndjson` stream (`hello`, `start`, `retry`, `delta`, `result`, `error`, `ping`)
-- `GET /api/arena/matchup?promptId=<optional>`
-- `POST /api/arena/vote`
-  - body: `{ matchupId, choice }`
-  - `choice`: `A | B | TIE | BOTH_BAD`
-- `GET /api/arena/prompts`
-- `GET /api/sandbox/benchmark?promptId=&modelA=&modelB=&modelC=&modelD=`
-- `GET /api/leaderboard`
+  - response: `application/x-ndjson` stream (`hello`, `start`, `retry`,
+    `delta`, `result`, `error`, `ping`)
+- `GET /api/generation-options` lists the models and settings the UI may offer
+- `POST /api/local/voxel-exec` runs a program locally during development
+- `POST /api/presence` records anonymous presence
+- `POST /api/contact` submits the contact form
+- `GET /api/faq` returns the FAQ content
 
-### Gallery and Saved Generation Routes
+### Saved generations
 
-Saved generations are private, account-owned Sandbox results. Gallery metadata and votes remain separate from Arena benchmark tables. See [Architecture](./architecture.md#saved-generations) for durable execution and [Gallery and saved generations](./gallery.md) for the user-facing workflow.
+Saved generations are private and account owned.
 
 - `POST /api/generations` creates one durable job per selected model
 - `GET /api/generations` lists the current account's jobs and results
 - `GET|DELETE /api/generations/$GENERATION_ID` reads or removes one owned generation
-- `POST /api/generations/$GENERATION_ID/cancel` intentionally cancels active work
+- `POST /api/generations/$GENERATION_ID/cancel` cancels active work
+- `POST /api/generations/$GENERATION_ID/retry` retries a failed generation
 - `GET /api/generations/$GENERATION_ID/download` redirects canonical JSON to private Storage
-- `GET /api/gallery/candidates` lists public Gallery metadata
-- `POST /api/gallery/candidates` submits an exact prompt or owned successful generation
-- `GET /api/gallery/candidates/$PUBLIC_ID` returns a candidate and cursor-paginated examples
-- `PUT /api/gallery/candidates/$PUBLIC_ID/vote` reversibly updates the current visitor's vote
-- `POST /api/gallery/reports` records a report from authoritative server-loaded content
+- `GET /api/generations/$GENERATION_ID/artifacts/$KIND` serves one stored artifact
 
-`GET /api/admin/status` includes queue age, failed jobs, stored bytes, pending object deletions, purge backlog, and email delivery failures. `GET /api/admin/gallery/purge` accepts `ADMIN_TOKEN` or `CRON_SECRET` and is scheduled daily.
+### Account routes
 
-To publish an existing finalized official-prompt rerun under the MineBench
-account, validate the local artifact and benchmark ledger first:
+- `GET|PATCH|DELETE /api/account` reads the account, updates the public
+  nickname, or deletes the account
+- `POST|DELETE /api/account/session` finishes a sign in or rotates the session
 
-```bash
-pnpm gallery:import --prompt steampunk --model gemini-3-1-pro
-```
+## Worker
 
-The command is read-only unless `--yes` is added. A confirmed import creates or
-reuses a saved generation, publishes it as a dated Gallery example, and marks
-the candidate as an official prompt. It does not replace the benchmark build.
-
-### Admin Routes
-
-Bearer `ADMIN_TOKEN` required.
-
-- `GET /api/admin/status`
-- `POST /api/admin/seed?dryRun=1&generateBuilds=0&batchSize=2`
-- `GET|POST /api/admin/rank-snapshots/capture?at=<optional-iso-timestamp>`
-- `POST /api/admin/import-build?modelKey=...&promptId=...|promptText=...&gridSize=256&palette=simple&mode=precise&overwrite=1`
-  - body can be either:
-    - raw voxel JSON (legacy)
-    - storage envelope: `{ "storage": { "bucket": "...", "path": "...", "encoding": "gzip" } }`
-
-## Batch Generation Examples
+Generation runs as a durable job queue drained by a worker:
 
 ```bash
-# status only
-pnpm batch:generate
-
-# generate missing files
-pnpm batch:generate --generate
-
-# generate without voxel.exec tool mode
-pnpm batch:generate --generate --notools
-
-# upload existing files to production
-pnpm batch:generate --upload
-
-# generate + upload with prompt/model filters
-pnpm batch:generate --generate --upload --prompt castle --model sonnet
-
-# all options
-pnpm batch:generate --help
+pnpm generations:worker
 ```
 
-Build files are written under `uploads/<prompt-slug>/`.
+`pnpm generations:artifacts:audit` reports stored artifacts that no longer have
+a matching generation.
 
-When `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are set, `--upload` uses direct Supabase Storage upload plus finalize import, which is the recommended path for 100MB-scale builds.
-
-## Database Notes
+## Database notes
 
 Prisma models:
-- `Model`
-- `Prompt`
-- `Build`
-- `Matchup`
-- `Vote`
 
-Prisma creates quoted PascalCase table names in Postgres.
-When querying manually, use quoted identifiers, for example:
+- `User`
+- `CustomBuild`, `CustomBuildJob`, `CustomBuildArtifact`, `CustomBuildEvent`,
+  `CustomBuildSecret`, `CustomBuildStatsDaily`
+- `PublicSessionActivity`
+
+Prisma creates quoted PascalCase table names in Postgres. When querying
+manually, use quoted identifiers:
 
 ```sql
-select count(*) from public."Prompt";
+select count(*) from public."CustomBuild";
 ```
