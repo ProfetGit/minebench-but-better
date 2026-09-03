@@ -126,7 +126,7 @@ function occupied(grid: RoleGrid, x: number, y: number, z: number): RoleCell {
   assert.equal(odd.cells.size, 2);
   assert.equal(occupied(odd, 3, 1, 0).role, "structure_post");
   assert.equal(occupied(odd, -3, 1, 0).role, "structure_post");
-  assert.deepEqual(odd.mirrors, [{ axis: "x", mirrorAt2: 0, opIndex: 0 }]);
+  assert.deepEqual(odd.mirrors, [{ axis: "x", mirrorAt2: 0, opIndex: 0, bodyOps: [1] }]);
 
   const even = gridOf((ctx) => {
     const m = ctx.mass({ w: 8, d: 8 });

@@ -507,6 +507,15 @@ function execLeaf(node: LeafOp, scratch: Scratch, mass: MassInfo): void {
   }
 }
 
+function collectOpIndices(nodes: readonly OpNode[]): number[] {
+  const out: number[] = [];
+  for (const node of nodes) {
+    out.push(node.opIndex);
+    if (node.kind !== "op") out.push(...collectOpIndices(node.body));
+  }
+  return out.sort((a, b) => a - b);
+}
+
 function execOps(
   nodes: readonly OpNode[],
   mass: MassInfo,
@@ -524,7 +533,12 @@ function execOps(
 
     if (node.kind === "mirror") {
       const mirrorAt2 = node.axis === "x" ? mass.mirrorAt2X : mass.mirrorAt2Z;
-      mirrors.push({ axis: node.axis, mirrorAt2, opIndex: node.opIndex });
+      mirrors.push({
+        axis: node.axis,
+        mirrorAt2,
+        opIndex: node.opIndex,
+        bodyOps: collectOpIndices(node.body),
+      });
       const reflected = transformScratch(
         body,
         (position) =>

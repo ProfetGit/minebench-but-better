@@ -38,6 +38,10 @@ export type GridSizeXYZ = { w: number; h: number; d: number };
 
 export type MirrorRecord = {
   axis: "x" | "z";
+  // Op indices recorded inside the mirror body. Only cells that came from these
+  // ops are expected to be symmetric; a later op may legitimately overwrite one
+  // half, and the repair pass reports that rather than assuming it.
+  bodyOps: number[];
   // World-space coordinate the reflection is taken about, doubled so it stays
   // an integer for even-width masses (reflection of c is mirrorAt2 - c).
   mirrorAt2: number;
