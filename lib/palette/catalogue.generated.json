@@ -1,0 +1,1773 @@
+[
+  {
+    "id": "minecraft:andesite",
+    "name": "Andesite",
+    "texture": "andesite",
+    "cost": 1,
+    "states": [],
+    "variants": {
+      "stairs": "minecraft:andesite_stairs",
+      "slab": "minecraft:andesite_slab"
+    },
+    "color": {
+      "r": 136,
+      "g": 136,
+      "b": 136,
+      "lightness": 0.626754
+    }
+  },
+  {
+    "id": "minecraft:andesite_slab",
+    "name": "Andesite Slab",
+    "texture": "andesite",
+    "cost": 1,
+    "states": [
+      "type"
+    ],
+    "variants": {},
+    "color": {
+      "r": 136,
+      "g": 136,
+      "b": 136,
+      "lightness": 0.626754
+    }
+  },
+  {
+    "id": "minecraft:andesite_stairs",
+    "name": "Andesite Stairs",
+    "texture": "andesite",
+    "cost": 1,
+    "states": [
+      "facing",
+      "half",
+      "shape"
+    ],
+    "variants": {},
+    "color": {
+      "r": 136,
+      "g": 136,
+      "b": 136,
+      "lightness": 0.626754
+    }
+  },
+  {
+    "id": "minecraft:birch_door",
+    "name": "Birch door",
+    "texture": "birch_door_bottom",
+    "cost": 2,
+    "states": [
+      "facing",
+      "half"
+    ],
+    "variants": {},
+    "color": {
+      "r": 212,
+      "g": 198,
+      "b": 146,
+      "lightness": 0.825529
+    }
+  },
+  {
+    "id": "minecraft:birch_log",
+    "name": "Birch log",
+    "texture": "birch_log",
+    "cost": 1,
+    "states": [
+      "axis"
+    ],
+    "variants": {},
+    "color": {
+      "r": 226,
+      "g": 225,
+      "b": 221,
+      "lightness": 0.909399
+    }
+  },
+  {
+    "id": "minecraft:birch_planks",
+    "name": "Birch planks",
+    "texture": "birch_planks",
+    "cost": 1,
+    "states": [],
+    "variants": {
+      "stairs": "minecraft:birch_stairs",
+      "slab": "minecraft:birch_slab"
+    },
+    "color": {
+      "r": 196,
+      "g": 179,
+      "b": 123,
+      "lightness": 0.767936
+    }
+  },
+  {
+    "id": "minecraft:birch_slab",
+    "name": "Birch planks Slab",
+    "texture": "birch_planks",
+    "cost": 1,
+    "states": [
+      "type"
+    ],
+    "variants": {},
+    "color": {
+      "r": 196,
+      "g": 179,
+      "b": 123,
+      "lightness": 0.767936
+    }
+  },
+  {
+    "id": "minecraft:birch_stairs",
+    "name": "Birch planks Stairs",
+    "texture": "birch_planks",
+    "cost": 1,
+    "states": [
+      "facing",
+      "half",
+      "shape"
+    ],
+    "variants": {},
+    "color": {
+      "r": 196,
+      "g": 179,
+      "b": 123,
+      "lightness": 0.767936
+    }
+  },
+  {
+    "id": "minecraft:brick_slab",
+    "name": "Bricks Slab",
+    "texture": "bricks",
+    "cost": 3,
+    "states": [
+      "type"
+    ],
+    "variants": {},
+    "color": {
+      "r": 151,
+      "g": 91,
+      "b": 75,
+      "lightness": 0.534821
+    }
+  },
+  {
+    "id": "minecraft:brick_stairs",
+    "name": "Bricks Stairs",
+    "texture": "bricks",
+    "cost": 3,
+    "states": [
+      "facing",
+      "half",
+      "shape"
+    ],
+    "variants": {},
+    "color": {
+      "r": 151,
+      "g": 91,
+      "b": 75,
+      "lightness": 0.534821
+    }
+  },
+  {
+    "id": "minecraft:bricks",
+    "name": "Bricks",
+    "texture": "bricks",
+    "cost": 3,
+    "states": [],
+    "variants": {
+      "stairs": "minecraft:brick_stairs",
+      "slab": "minecraft:brick_slab"
+    },
+    "color": {
+      "r": 151,
+      "g": 91,
+      "b": 75,
+      "lightness": 0.534821
+    }
+  },
+  {
+    "id": "minecraft:clay",
+    "name": "Clay",
+    "texture": "clay",
+    "cost": 1,
+    "states": [],
+    "variants": {},
+    "color": {
+      "r": 160,
+      "g": 166,
+      "b": 178,
+      "lightness": 0.724128
+    }
+  },
+  {
+    "id": "minecraft:cobbled_deepslate",
+    "name": "Cobbled Deepslate",
+    "texture": "cobbled_deepslate",
+    "cost": 2,
+    "states": [],
+    "variants": {
+      "stairs": "minecraft:cobbled_deepslate_stairs",
+      "slab": "minecraft:cobbled_deepslate_slab"
+    },
+    "color": {
+      "r": 76,
+      "g": 76,
+      "b": 80,
+      "lightness": 0.417963
+    }
+  },
+  {
+    "id": "minecraft:cobbled_deepslate_slab",
+    "name": "Cobbled Deepslate Slab",
+    "texture": "cobbled_deepslate",
+    "cost": 2,
+    "states": [
+      "type"
+    ],
+    "variants": {},
+    "color": {
+      "r": 76,
+      "g": 76,
+      "b": 80,
+      "lightness": 0.417963
+    }
+  },
+  {
+    "id": "minecraft:cobbled_deepslate_stairs",
+    "name": "Cobbled Deepslate Stairs",
+    "texture": "cobbled_deepslate",
+    "cost": 2,
+    "states": [
+      "facing",
+      "half",
+      "shape"
+    ],
+    "variants": {},
+    "color": {
+      "r": 76,
+      "g": 76,
+      "b": 80,
+      "lightness": 0.417963
+    }
+  },
+  {
+    "id": "minecraft:cobblestone",
+    "name": "Cobblestone",
+    "texture": "cobblestone",
+    "cost": 1,
+    "states": [],
+    "variants": {
+      "stairs": "minecraft:cobblestone_stairs",
+      "slab": "minecraft:cobblestone_slab"
+    },
+    "color": {
+      "r": 128,
+      "g": 127,
+      "b": 127,
+      "lightness": 0.597354
+    }
+  },
+  {
+    "id": "minecraft:cobblestone_slab",
+    "name": "Cobblestone Slab",
+    "texture": "cobblestone",
+    "cost": 1,
+    "states": [
+      "type"
+    ],
+    "variants": {},
+    "color": {
+      "r": 128,
+      "g": 127,
+      "b": 127,
+      "lightness": 0.597354
+    }
+  },
+  {
+    "id": "minecraft:cobblestone_stairs",
+    "name": "Cobblestone Stairs",
+    "texture": "cobblestone",
+    "cost": 1,
+    "states": [
+      "facing",
+      "half",
+      "shape"
+    ],
+    "variants": {},
+    "color": {
+      "r": 128,
+      "g": 127,
+      "b": 127,
+      "lightness": 0.597354
+    }
+  },
+  {
+    "id": "minecraft:copper_block",
+    "name": "Copper Block",
+    "texture": "copper_block",
+    "cost": 8,
+    "states": [],
+    "variants": {},
+    "color": {
+      "r": 194,
+      "g": 109,
+      "b": 80,
+      "lightness": 0.624229
+    }
+  },
+  {
+    "id": "minecraft:cracked_stone_bricks",
+    "name": "Cracked Stone Bricks",
+    "texture": "cracked_stone_bricks",
+    "cost": 2,
+    "states": [],
+    "variants": {},
+    "color": {
+      "r": 121,
+      "g": 121,
+      "b": 121,
+      "lightness": 0.576099
+    }
+  },
+  {
+    "id": "minecraft:dark_oak_door",
+    "name": "Dark Oak door",
+    "texture": "dark_oak_door_bottom",
+    "cost": 2,
+    "states": [
+      "facing",
+      "half"
+    ],
+    "variants": {},
+    "color": {
+      "r": 74,
+      "g": 50,
+      "b": 23,
+      "lightness": 0.338961
+    }
+  },
+  {
+    "id": "minecraft:dark_oak_log",
+    "name": "Dark Oak log",
+    "texture": "dark_oak_log",
+    "cost": 1,
+    "states": [
+      "axis"
+    ],
+    "variants": {},
+    "color": {
+      "r": 59,
+      "g": 45,
+      "b": 25,
+      "lightness": 0.307664
+    }
+  },
+  {
+    "id": "minecraft:dark_oak_planks",
+    "name": "Dark Oak planks",
+    "texture": "dark_oak_planks",
+    "cost": 1,
+    "states": [],
+    "variants": {
+      "stairs": "minecraft:dark_oak_stairs",
+      "slab": "minecraft:dark_oak_slab"
+    },
+    "color": {
+      "r": 69,
+      "g": 45,
+      "b": 21,
+      "lightness": 0.320359
+    }
+  },
+  {
+    "id": "minecraft:dark_oak_slab",
+    "name": "Dark Oak planks Slab",
+    "texture": "dark_oak_planks",
+    "cost": 1,
+    "states": [
+      "type"
+    ],
+    "variants": {},
+    "color": {
+      "r": 69,
+      "g": 45,
+      "b": 21,
+      "lightness": 0.320359
+    }
+  },
+  {
+    "id": "minecraft:dark_oak_stairs",
+    "name": "Dark Oak planks Stairs",
+    "texture": "dark_oak_planks",
+    "cost": 1,
+    "states": [
+      "facing",
+      "half",
+      "shape"
+    ],
+    "variants": {},
+    "color": {
+      "r": 69,
+      "g": 45,
+      "b": 21,
+      "lightness": 0.320359
+    }
+  },
+  {
+    "id": "minecraft:deepslate",
+    "name": "Deepslate",
+    "texture": "deepslate",
+    "cost": 2,
+    "states": [
+      "axis"
+    ],
+    "variants": {},
+    "color": {
+      "r": 78,
+      "g": 78,
+      "b": 81,
+      "lightness": 0.424981
+    }
+  },
+  {
+    "id": "minecraft:deepslate_brick_slab",
+    "name": "Deepslate Bricks Slab",
+    "texture": "deepslate_bricks",
+    "cost": 3,
+    "states": [
+      "type"
+    ],
+    "variants": {},
+    "color": {
+      "r": 74,
+      "g": 74,
+      "b": 74,
+      "lightness": 0.40912
+    }
+  },
+  {
+    "id": "minecraft:deepslate_brick_stairs",
+    "name": "Deepslate Bricks Stairs",
+    "texture": "deepslate_bricks",
+    "cost": 3,
+    "states": [
+      "facing",
+      "half",
+      "shape"
+    ],
+    "variants": {},
+    "color": {
+      "r": 74,
+      "g": 74,
+      "b": 74,
+      "lightness": 0.40912
+    }
+  },
+  {
+    "id": "minecraft:deepslate_bricks",
+    "name": "Deepslate Bricks",
+    "texture": "deepslate_bricks",
+    "cost": 3,
+    "states": [],
+    "variants": {
+      "stairs": "minecraft:deepslate_brick_stairs",
+      "slab": "minecraft:deepslate_brick_slab"
+    },
+    "color": {
+      "r": 74,
+      "g": 74,
+      "b": 74,
+      "lightness": 0.40912
+    }
+  },
+  {
+    "id": "minecraft:deepslate_tile_slab",
+    "name": "Deepslate Tiles Slab",
+    "texture": "deepslate_tiles",
+    "cost": 3,
+    "states": [
+      "type"
+    ],
+    "variants": {},
+    "color": {
+      "r": 57,
+      "g": 57,
+      "b": 58,
+      "lightness": 0.34495
+    }
+  },
+  {
+    "id": "minecraft:deepslate_tile_stairs",
+    "name": "Deepslate Tiles Stairs",
+    "texture": "deepslate_tiles",
+    "cost": 3,
+    "states": [
+      "facing",
+      "half",
+      "shape"
+    ],
+    "variants": {},
+    "color": {
+      "r": 57,
+      "g": 57,
+      "b": 58,
+      "lightness": 0.34495
+    }
+  },
+  {
+    "id": "minecraft:deepslate_tiles",
+    "name": "Deepslate Tiles",
+    "texture": "deepslate_tiles",
+    "cost": 3,
+    "states": [],
+    "variants": {
+      "stairs": "minecraft:deepslate_tile_stairs",
+      "slab": "minecraft:deepslate_tile_slab"
+    },
+    "color": {
+      "r": 57,
+      "g": 57,
+      "b": 58,
+      "lightness": 0.34495
+    }
+  },
+  {
+    "id": "minecraft:diorite",
+    "name": "Diorite",
+    "texture": "diorite",
+    "cost": 1,
+    "states": [],
+    "variants": {
+      "stairs": "minecraft:diorite_stairs",
+      "slab": "minecraft:diorite_slab"
+    },
+    "color": {
+      "r": 189,
+      "g": 188,
+      "b": 189,
+      "lightness": 0.796323
+    }
+  },
+  {
+    "id": "minecraft:diorite_slab",
+    "name": "Diorite Slab",
+    "texture": "diorite",
+    "cost": 1,
+    "states": [
+      "type"
+    ],
+    "variants": {},
+    "color": {
+      "r": 189,
+      "g": 188,
+      "b": 189,
+      "lightness": 0.796323
+    }
+  },
+  {
+    "id": "minecraft:diorite_stairs",
+    "name": "Diorite Stairs",
+    "texture": "diorite",
+    "cost": 1,
+    "states": [
+      "facing",
+      "half",
+      "shape"
+    ],
+    "variants": {},
+    "color": {
+      "r": 189,
+      "g": 188,
+      "b": 189,
+      "lightness": 0.796323
+    }
+  },
+  {
+    "id": "minecraft:dirt",
+    "name": "Dirt",
+    "texture": "dirt",
+    "cost": 1,
+    "states": [],
+    "variants": {},
+    "color": {
+      "r": 132,
+      "g": 95,
+      "b": 67,
+      "lightness": 0.517209
+    }
+  },
+  {
+    "id": "minecraft:glass",
+    "name": "Glass",
+    "texture": "glass",
+    "cost": 2,
+    "states": [],
+    "variants": {},
+    "color": {
+      "r": 176,
+      "g": 214,
+      "b": 219,
+      "lightness": 0.850367
+    }
+  },
+  {
+    "id": "minecraft:glowstone",
+    "name": "Glowstone",
+    "texture": "glowstone",
+    "cost": 12,
+    "states": [],
+    "variants": {},
+    "color": {
+      "r": 180,
+      "g": 144,
+      "b": 93,
+      "lightness": 0.675313
+    }
+  },
+  {
+    "id": "minecraft:gold_block",
+    "name": "Gold Block",
+    "texture": "gold_block",
+    "cost": 90,
+    "states": [],
+    "variants": {},
+    "color": {
+      "r": 250,
+      "g": 213,
+      "b": 63,
+      "lightness": 0.880035
+    }
+  },
+  {
+    "id": "minecraft:granite",
+    "name": "Granite",
+    "texture": "granite",
+    "cost": 1,
+    "states": [],
+    "variants": {
+      "stairs": "minecraft:granite_stairs",
+      "slab": "minecraft:granite_slab"
+    },
+    "color": {
+      "r": 149,
+      "g": 102,
+      "b": 84,
+      "lightness": 0.555103
+    }
+  },
+  {
+    "id": "minecraft:granite_slab",
+    "name": "Granite Slab",
+    "texture": "granite",
+    "cost": 1,
+    "states": [
+      "type"
+    ],
+    "variants": {},
+    "color": {
+      "r": 149,
+      "g": 102,
+      "b": 84,
+      "lightness": 0.555103
+    }
+  },
+  {
+    "id": "minecraft:granite_stairs",
+    "name": "Granite Stairs",
+    "texture": "granite",
+    "cost": 1,
+    "states": [
+      "facing",
+      "half",
+      "shape"
+    ],
+    "variants": {},
+    "color": {
+      "r": 149,
+      "g": 102,
+      "b": 84,
+      "lightness": 0.555103
+    }
+  },
+  {
+    "id": "minecraft:grass_block",
+    "name": "Grass Block",
+    "texture": "grass_block_side",
+    "cost": 1,
+    "states": [],
+    "variants": {},
+    "color": {
+      "r": 119,
+      "g": 99,
+      "b": 61,
+      "lightness": 0.509929
+    }
+  },
+  {
+    "id": "minecraft:gravel",
+    "name": "Gravel",
+    "texture": "gravel",
+    "cost": 1,
+    "states": [],
+    "variants": {},
+    "color": {
+      "r": 131,
+      "g": 126,
+      "b": 125,
+      "lightness": 0.597178
+    }
+  },
+  {
+    "id": "minecraft:iron_block",
+    "name": "Iron Block",
+    "texture": "iron_block",
+    "cost": 45,
+    "states": [],
+    "variants": {},
+    "color": {
+      "r": 223,
+      "g": 223,
+      "b": 223,
+      "lightness": 0.903652
+    }
+  },
+  {
+    "id": "minecraft:moss_block",
+    "name": "Moss Block",
+    "texture": "moss_block",
+    "cost": 2,
+    "states": [],
+    "variants": {},
+    "color": {
+      "r": 87,
+      "g": 108,
+      "b": 45,
+      "lightness": 0.499362
+    }
+  },
+  {
+    "id": "minecraft:mossy_cobblestone",
+    "name": "Mossy Cobblestone",
+    "texture": "mossy_cobblestone",
+    "cost": 2,
+    "states": [],
+    "variants": {
+      "stairs": "minecraft:mossy_cobblestone_stairs",
+      "slab": "minecraft:mossy_cobblestone_slab"
+    },
+    "color": {
+      "r": 109,
+      "g": 119,
+      "b": 92,
+      "lightness": 0.55311
+    }
+  },
+  {
+    "id": "minecraft:mossy_cobblestone_slab",
+    "name": "Mossy Cobblestone Slab",
+    "texture": "mossy_cobblestone",
+    "cost": 2,
+    "states": [
+      "type"
+    ],
+    "variants": {},
+    "color": {
+      "r": 109,
+      "g": 119,
+      "b": 92,
+      "lightness": 0.55311
+    }
+  },
+  {
+    "id": "minecraft:mossy_cobblestone_stairs",
+    "name": "Mossy Cobblestone Stairs",
+    "texture": "mossy_cobblestone",
+    "cost": 2,
+    "states": [
+      "facing",
+      "half",
+      "shape"
+    ],
+    "variants": {},
+    "color": {
+      "r": 109,
+      "g": 119,
+      "b": 92,
+      "lightness": 0.55311
+    }
+  },
+  {
+    "id": "minecraft:mossy_stone_brick_slab",
+    "name": "Mossy Stone Bricks Slab",
+    "texture": "mossy_stone_bricks",
+    "cost": 2,
+    "states": [
+      "type"
+    ],
+    "variants": {},
+    "color": {
+      "r": 117,
+      "g": 123,
+      "b": 106,
+      "lightness": 0.572757
+    }
+  },
+  {
+    "id": "minecraft:mossy_stone_brick_stairs",
+    "name": "Mossy Stone Bricks Stairs",
+    "texture": "mossy_stone_bricks",
+    "cost": 2,
+    "states": [
+      "facing",
+      "half",
+      "shape"
+    ],
+    "variants": {},
+    "color": {
+      "r": 117,
+      "g": 123,
+      "b": 106,
+      "lightness": 0.572757
+    }
+  },
+  {
+    "id": "minecraft:mossy_stone_bricks",
+    "name": "Mossy Stone Bricks",
+    "texture": "mossy_stone_bricks",
+    "cost": 2,
+    "states": [],
+    "variants": {
+      "stairs": "minecraft:mossy_stone_brick_stairs",
+      "slab": "minecraft:mossy_stone_brick_slab"
+    },
+    "color": {
+      "r": 117,
+      "g": 123,
+      "b": 106,
+      "lightness": 0.572757
+    }
+  },
+  {
+    "id": "minecraft:mud_brick_slab",
+    "name": "Mud Bricks Slab",
+    "texture": "mud_bricks",
+    "cost": 2,
+    "states": [
+      "type"
+    ],
+    "variants": {},
+    "color": {
+      "r": 142,
+      "g": 108,
+      "b": 80,
+      "lightness": 0.558188
+    }
+  },
+  {
+    "id": "minecraft:mud_brick_stairs",
+    "name": "Mud Bricks Stairs",
+    "texture": "mud_bricks",
+    "cost": 2,
+    "states": [
+      "facing",
+      "half",
+      "shape"
+    ],
+    "variants": {},
+    "color": {
+      "r": 142,
+      "g": 108,
+      "b": 80,
+      "lightness": 0.558188
+    }
+  },
+  {
+    "id": "minecraft:mud_bricks",
+    "name": "Mud Bricks",
+    "texture": "mud_bricks",
+    "cost": 2,
+    "states": [],
+    "variants": {
+      "stairs": "minecraft:mud_brick_stairs",
+      "slab": "minecraft:mud_brick_slab"
+    },
+    "color": {
+      "r": 142,
+      "g": 108,
+      "b": 80,
+      "lightness": 0.558188
+    }
+  },
+  {
+    "id": "minecraft:nether_brick_slab",
+    "name": "Nether Bricks Slab",
+    "texture": "nether_bricks",
+    "cost": 4,
+    "states": [
+      "type"
+    ],
+    "variants": {},
+    "color": {
+      "r": 46,
+      "g": 23,
+      "b": 27,
+      "lightness": 0.238206
+    }
+  },
+  {
+    "id": "minecraft:nether_brick_stairs",
+    "name": "Nether Bricks Stairs",
+    "texture": "nether_bricks",
+    "cost": 4,
+    "states": [
+      "facing",
+      "half",
+      "shape"
+    ],
+    "variants": {},
+    "color": {
+      "r": 46,
+      "g": 23,
+      "b": 27,
+      "lightness": 0.238206
+    }
+  },
+  {
+    "id": "minecraft:nether_bricks",
+    "name": "Nether Bricks",
+    "texture": "nether_bricks",
+    "cost": 4,
+    "states": [],
+    "variants": {
+      "stairs": "minecraft:nether_brick_stairs",
+      "slab": "minecraft:nether_brick_slab"
+    },
+    "color": {
+      "r": 46,
+      "g": 23,
+      "b": 27,
+      "lightness": 0.238206
+    }
+  },
+  {
+    "id": "minecraft:oak_door",
+    "name": "Oak door",
+    "texture": "oak_door_bottom",
+    "cost": 2,
+    "states": [
+      "facing",
+      "half"
+    ],
+    "variants": {},
+    "color": {
+      "r": 143,
+      "g": 111,
+      "b": 60,
+      "lightness": 0.562089
+    }
+  },
+  {
+    "id": "minecraft:oak_log",
+    "name": "Oak log",
+    "texture": "oak_log",
+    "cost": 1,
+    "states": [
+      "axis"
+    ],
+    "variants": {},
+    "color": {
+      "r": 107,
+      "g": 83,
+      "b": 49,
+      "lightness": 0.45883
+    }
+  },
+  {
+    "id": "minecraft:oak_planks",
+    "name": "Oak planks",
+    "texture": "oak_planks",
+    "cost": 1,
+    "states": [],
+    "variants": {
+      "stairs": "minecraft:oak_stairs",
+      "slab": "minecraft:oak_slab"
+    },
+    "color": {
+      "r": 168,
+      "g": 136,
+      "b": 82,
+      "lightness": 0.644627
+    }
+  },
+  {
+    "id": "minecraft:oak_slab",
+    "name": "Oak planks Slab",
+    "texture": "oak_planks",
+    "cost": 1,
+    "states": [
+      "type"
+    ],
+    "variants": {},
+    "color": {
+      "r": 168,
+      "g": 136,
+      "b": 82,
+      "lightness": 0.644627
+    }
+  },
+  {
+    "id": "minecraft:oak_stairs",
+    "name": "Oak planks Stairs",
+    "texture": "oak_planks",
+    "cost": 1,
+    "states": [
+      "facing",
+      "half",
+      "shape"
+    ],
+    "variants": {},
+    "color": {
+      "r": 168,
+      "g": 136,
+      "b": 82,
+      "lightness": 0.644627
+    }
+  },
+  {
+    "id": "minecraft:obsidian",
+    "name": "Obsidian",
+    "texture": "obsidian",
+    "cost": 10,
+    "states": [],
+    "variants": {},
+    "color": {
+      "r": 14,
+      "g": 10,
+      "b": 23,
+      "lightness": 0.157402
+    }
+  },
+  {
+    "id": "minecraft:oxidized_copper",
+    "name": "Oxidized Copper",
+    "texture": "oxidized_copper",
+    "cost": 8,
+    "states": [],
+    "variants": {},
+    "color": {
+      "r": 83,
+      "g": 167,
+      "b": 136,
+      "lightness": 0.666766
+    }
+  },
+  {
+    "id": "minecraft:polished_andesite",
+    "name": "Polished Andesite",
+    "texture": "polished_andesite",
+    "cost": 2,
+    "states": [],
+    "variants": {
+      "stairs": "minecraft:polished_andesite_stairs",
+      "slab": "minecraft:polished_andesite_slab"
+    },
+    "color": {
+      "r": 132,
+      "g": 135,
+      "b": 134,
+      "lightness": 0.620564
+    }
+  },
+  {
+    "id": "minecraft:polished_andesite_slab",
+    "name": "Polished Andesite Slab",
+    "texture": "polished_andesite",
+    "cost": 2,
+    "states": [
+      "type"
+    ],
+    "variants": {},
+    "color": {
+      "r": 132,
+      "g": 135,
+      "b": 134,
+      "lightness": 0.620564
+    }
+  },
+  {
+    "id": "minecraft:polished_andesite_stairs",
+    "name": "Polished Andesite Stairs",
+    "texture": "polished_andesite",
+    "cost": 2,
+    "states": [
+      "facing",
+      "half",
+      "shape"
+    ],
+    "variants": {},
+    "color": {
+      "r": 132,
+      "g": 135,
+      "b": 134,
+      "lightness": 0.620564
+    }
+  },
+  {
+    "id": "minecraft:polished_deepslate",
+    "name": "Polished Deepslate",
+    "texture": "polished_deepslate",
+    "cost": 3,
+    "states": [],
+    "variants": {
+      "stairs": "minecraft:polished_deepslate_stairs",
+      "slab": "minecraft:polished_deepslate_slab"
+    },
+    "color": {
+      "r": 72,
+      "g": 73,
+      "b": 74,
+      "lightness": 0.404807
+    }
+  },
+  {
+    "id": "minecraft:polished_deepslate_slab",
+    "name": "Polished Deepslate Slab",
+    "texture": "polished_deepslate",
+    "cost": 3,
+    "states": [
+      "type"
+    ],
+    "variants": {},
+    "color": {
+      "r": 72,
+      "g": 73,
+      "b": 74,
+      "lightness": 0.404807
+    }
+  },
+  {
+    "id": "minecraft:polished_deepslate_stairs",
+    "name": "Polished Deepslate Stairs",
+    "texture": "polished_deepslate",
+    "cost": 3,
+    "states": [
+      "facing",
+      "half",
+      "shape"
+    ],
+    "variants": {},
+    "color": {
+      "r": 72,
+      "g": 73,
+      "b": 74,
+      "lightness": 0.404807
+    }
+  },
+  {
+    "id": "minecraft:polished_diorite",
+    "name": "Polished Diorite",
+    "texture": "polished_diorite",
+    "cost": 2,
+    "states": [],
+    "variants": {
+      "stairs": "minecraft:polished_diorite_stairs",
+      "slab": "minecraft:polished_diorite_slab"
+    },
+    "color": {
+      "r": 198,
+      "g": 198,
+      "b": 200,
+      "lightness": 0.827149
+    }
+  },
+  {
+    "id": "minecraft:polished_diorite_slab",
+    "name": "Polished Diorite Slab",
+    "texture": "polished_diorite",
+    "cost": 2,
+    "states": [
+      "type"
+    ],
+    "variants": {},
+    "color": {
+      "r": 198,
+      "g": 198,
+      "b": 200,
+      "lightness": 0.827149
+    }
+  },
+  {
+    "id": "minecraft:polished_diorite_stairs",
+    "name": "Polished Diorite Stairs",
+    "texture": "polished_diorite",
+    "cost": 2,
+    "states": [
+      "facing",
+      "half",
+      "shape"
+    ],
+    "variants": {},
+    "color": {
+      "r": 198,
+      "g": 198,
+      "b": 200,
+      "lightness": 0.827149
+    }
+  },
+  {
+    "id": "minecraft:polished_granite",
+    "name": "Polished Granite",
+    "texture": "polished_granite",
+    "cost": 2,
+    "states": [],
+    "variants": {
+      "stairs": "minecraft:polished_granite_stairs",
+      "slab": "minecraft:polished_granite_slab"
+    },
+    "color": {
+      "r": 156,
+      "g": 107,
+      "b": 89,
+      "lightness": 0.5743
+    }
+  },
+  {
+    "id": "minecraft:polished_granite_slab",
+    "name": "Polished Granite Slab",
+    "texture": "polished_granite",
+    "cost": 2,
+    "states": [
+      "type"
+    ],
+    "variants": {},
+    "color": {
+      "r": 156,
+      "g": 107,
+      "b": 89,
+      "lightness": 0.5743
+    }
+  },
+  {
+    "id": "minecraft:polished_granite_stairs",
+    "name": "Polished Granite Stairs",
+    "texture": "polished_granite",
+    "cost": 2,
+    "states": [
+      "facing",
+      "half",
+      "shape"
+    ],
+    "variants": {},
+    "color": {
+      "r": 156,
+      "g": 107,
+      "b": 89,
+      "lightness": 0.5743
+    }
+  },
+  {
+    "id": "minecraft:quartz_block",
+    "name": "Quartz Block",
+    "texture": "quartz_block_side",
+    "cost": 6,
+    "states": [],
+    "variants": {
+      "stairs": "minecraft:quartz_stairs",
+      "slab": "minecraft:quartz_slab"
+    },
+    "color": {
+      "r": 236,
+      "g": 230,
+      "b": 223,
+      "lightness": 0.927695
+    }
+  },
+  {
+    "id": "minecraft:quartz_slab",
+    "name": "Quartz Block Slab",
+    "texture": "quartz_block_side",
+    "cost": 6,
+    "states": [
+      "type"
+    ],
+    "variants": {},
+    "color": {
+      "r": 236,
+      "g": 230,
+      "b": 223,
+      "lightness": 0.927695
+    }
+  },
+  {
+    "id": "minecraft:quartz_stairs",
+    "name": "Quartz Block Stairs",
+    "texture": "quartz_block_side",
+    "cost": 6,
+    "states": [
+      "facing",
+      "half",
+      "shape"
+    ],
+    "variants": {},
+    "color": {
+      "r": 236,
+      "g": 230,
+      "b": 223,
+      "lightness": 0.927695
+    }
+  },
+  {
+    "id": "minecraft:red_sandstone",
+    "name": "Red Sandstone",
+    "texture": "red_sandstone",
+    "cost": 1,
+    "states": [],
+    "variants": {
+      "stairs": "minecraft:red_sandstone_stairs",
+      "slab": "minecraft:red_sandstone_slab"
+    },
+    "color": {
+      "r": 189,
+      "g": 101,
+      "b": 31,
+      "lightness": 0.598372
+    }
+  },
+  {
+    "id": "minecraft:red_sandstone_slab",
+    "name": "Red Sandstone Slab",
+    "texture": "red_sandstone",
+    "cost": 1,
+    "states": [
+      "type"
+    ],
+    "variants": {},
+    "color": {
+      "r": 189,
+      "g": 101,
+      "b": 31,
+      "lightness": 0.598372
+    }
+  },
+  {
+    "id": "minecraft:red_sandstone_stairs",
+    "name": "Red Sandstone Stairs",
+    "texture": "red_sandstone",
+    "cost": 1,
+    "states": [
+      "facing",
+      "half",
+      "shape"
+    ],
+    "variants": {},
+    "color": {
+      "r": 189,
+      "g": 101,
+      "b": 31,
+      "lightness": 0.598372
+    }
+  },
+  {
+    "id": "minecraft:sandstone",
+    "name": "Sandstone",
+    "texture": "sandstone",
+    "cost": 1,
+    "states": [],
+    "variants": {
+      "stairs": "minecraft:sandstone_stairs",
+      "slab": "minecraft:sandstone_slab"
+    },
+    "color": {
+      "r": 218,
+      "g": 206,
+      "b": 159,
+      "lightness": 0.849595
+    }
+  },
+  {
+    "id": "minecraft:sandstone_slab",
+    "name": "Sandstone Slab",
+    "texture": "sandstone",
+    "cost": 1,
+    "states": [
+      "type"
+    ],
+    "variants": {},
+    "color": {
+      "r": 218,
+      "g": 206,
+      "b": 159,
+      "lightness": 0.849595
+    }
+  },
+  {
+    "id": "minecraft:sandstone_stairs",
+    "name": "Sandstone Stairs",
+    "texture": "sandstone",
+    "cost": 1,
+    "states": [
+      "facing",
+      "half",
+      "shape"
+    ],
+    "variants": {},
+    "color": {
+      "r": 218,
+      "g": 206,
+      "b": 159,
+      "lightness": 0.849595
+    }
+  },
+  {
+    "id": "minecraft:sea_lantern",
+    "name": "Sea Lantern",
+    "texture": "sea_lantern",
+    "cost": 15,
+    "states": [],
+    "variants": {},
+    "color": {
+      "r": 184,
+      "g": 209,
+      "b": 200,
+      "lightness": 0.839486
+    }
+  },
+  {
+    "id": "minecraft:shroomlight",
+    "name": "Shroomlight",
+    "texture": "shroomlight",
+    "cost": 10,
+    "states": [],
+    "variants": {},
+    "color": {
+      "r": 243,
+      "g": 152,
+      "b": 76,
+      "lightness": 0.759367
+    }
+  },
+  {
+    "id": "minecraft:smooth_stone",
+    "name": "Smooth Stone",
+    "texture": "smooth_stone",
+    "cost": 2,
+    "states": [],
+    "variants": {
+      "slab": "minecraft:smooth_stone_slab"
+    },
+    "color": {
+      "r": 162,
+      "g": 162,
+      "b": 162,
+      "lightness": 0.712238
+    }
+  },
+  {
+    "id": "minecraft:smooth_stone_slab",
+    "name": "Smooth Stone Slab",
+    "texture": "smooth_stone",
+    "cost": 2,
+    "states": [
+      "type"
+    ],
+    "variants": {},
+    "color": {
+      "r": 162,
+      "g": 162,
+      "b": 162,
+      "lightness": 0.712238
+    }
+  },
+  {
+    "id": "minecraft:spruce_door",
+    "name": "Spruce door",
+    "texture": "spruce_door_bottom",
+    "cost": 2,
+    "states": [
+      "facing",
+      "half"
+    ],
+    "variants": {},
+    "color": {
+      "r": 109,
+      "g": 83,
+      "b": 52,
+      "lightness": 0.4617
+    }
+  },
+  {
+    "id": "minecraft:spruce_log",
+    "name": "Spruce log",
+    "texture": "spruce_log",
+    "cost": 1,
+    "states": [
+      "axis"
+    ],
+    "variants": {},
+    "color": {
+      "r": 57,
+      "g": 36,
+      "b": 16,
+      "lightness": 0.281659
+    }
+  },
+  {
+    "id": "minecraft:spruce_planks",
+    "name": "Spruce planks",
+    "texture": "spruce_planks",
+    "cost": 1,
+    "states": [],
+    "variants": {
+      "stairs": "minecraft:spruce_stairs",
+      "slab": "minecraft:spruce_slab"
+    },
+    "color": {
+      "r": 118,
+      "g": 87,
+      "b": 50,
+      "lightness": 0.48069
+    }
+  },
+  {
+    "id": "minecraft:spruce_slab",
+    "name": "Spruce planks Slab",
+    "texture": "spruce_planks",
+    "cost": 1,
+    "states": [
+      "type"
+    ],
+    "variants": {},
+    "color": {
+      "r": 118,
+      "g": 87,
+      "b": 50,
+      "lightness": 0.48069
+    }
+  },
+  {
+    "id": "minecraft:spruce_stairs",
+    "name": "Spruce planks Stairs",
+    "texture": "spruce_planks",
+    "cost": 1,
+    "states": [
+      "facing",
+      "half",
+      "shape"
+    ],
+    "variants": {},
+    "color": {
+      "r": 118,
+      "g": 87,
+      "b": 50,
+      "lightness": 0.48069
+    }
+  },
+  {
+    "id": "minecraft:stone",
+    "name": "Stone",
+    "texture": "stone",
+    "cost": 1,
+    "states": [],
+    "variants": {
+      "stairs": "minecraft:stone_stairs",
+      "slab": "minecraft:stone_slab"
+    },
+    "color": {
+      "r": 124,
+      "g": 124,
+      "b": 124,
+      "lightness": 0.586316
+    }
+  },
+  {
+    "id": "minecraft:stone_brick_slab",
+    "name": "Stone Bricks Slab",
+    "texture": "stone_bricks",
+    "cost": 2,
+    "states": [
+      "type"
+    ],
+    "variants": {},
+    "color": {
+      "r": 124,
+      "g": 123,
+      "b": 124,
+      "lightness": 0.584104
+    }
+  },
+  {
+    "id": "minecraft:stone_brick_stairs",
+    "name": "Stone Bricks Stairs",
+    "texture": "stone_bricks",
+    "cost": 2,
+    "states": [
+      "facing",
+      "half",
+      "shape"
+    ],
+    "variants": {},
+    "color": {
+      "r": 124,
+      "g": 123,
+      "b": 124,
+      "lightness": 0.584104
+    }
+  },
+  {
+    "id": "minecraft:stone_bricks",
+    "name": "Stone Bricks",
+    "texture": "stone_bricks",
+    "cost": 2,
+    "states": [],
+    "variants": {
+      "stairs": "minecraft:stone_brick_stairs",
+      "slab": "minecraft:stone_brick_slab"
+    },
+    "color": {
+      "r": 124,
+      "g": 123,
+      "b": 124,
+      "lightness": 0.584104
+    }
+  },
+  {
+    "id": "minecraft:stone_slab",
+    "name": "Stone Slab",
+    "texture": "stone",
+    "cost": 1,
+    "states": [
+      "type"
+    ],
+    "variants": {},
+    "color": {
+      "r": 124,
+      "g": 124,
+      "b": 124,
+      "lightness": 0.586316
+    }
+  },
+  {
+    "id": "minecraft:stone_stairs",
+    "name": "Stone Stairs",
+    "texture": "stone",
+    "cost": 1,
+    "states": [
+      "facing",
+      "half",
+      "shape"
+    ],
+    "variants": {},
+    "color": {
+      "r": 124,
+      "g": 124,
+      "b": 124,
+      "lightness": 0.586316
+    }
+  },
+  {
+    "id": "minecraft:stripped_birch_log",
+    "name": "Stripped birch log",
+    "texture": "stripped_birch_log",
+    "cost": 1,
+    "states": [
+      "axis"
+    ],
+    "variants": {},
+    "color": {
+      "r": 198,
+      "g": 177,
+      "b": 119,
+      "lightness": 0.764911
+    }
+  },
+  {
+    "id": "minecraft:stripped_dark_oak_log",
+    "name": "Stripped dark Oak log",
+    "texture": "stripped_dark_oak_log",
+    "cost": 1,
+    "states": [
+      "axis"
+    ],
+    "variants": {},
+    "color": {
+      "r": 74,
+      "g": 58,
+      "b": 36,
+      "lightness": 0.359927
+    }
+  },
+  {
+    "id": "minecraft:stripped_oak_log",
+    "name": "Stripped oak log",
+    "texture": "stripped_oak_log",
+    "cost": 1,
+    "states": [
+      "axis"
+    ],
+    "variants": {},
+    "color": {
+      "r": 179,
+      "g": 145,
+      "b": 86,
+      "lightness": 0.675194
+    }
+  },
+  {
+    "id": "minecraft:stripped_spruce_log",
+    "name": "Stripped spruce log",
+    "texture": "stripped_spruce_log",
+    "cost": 1,
+    "states": [
+      "axis"
+    ],
+    "variants": {},
+    "color": {
+      "r": 116,
+      "g": 90,
+      "b": 53,
+      "lightness": 0.485341
+    }
+  },
+  {
+    "id": "minecraft:terracotta",
+    "name": "Terracotta",
+    "texture": "terracotta",
+    "cost": 2,
+    "states": [],
+    "variants": {},
+    "color": {
+      "r": 152,
+      "g": 94,
+      "b": 68,
+      "lightness": 0.540314
+    }
+  },
+  {
+    "id": "minecraft:tinted_glass",
+    "name": "Tinted Glass",
+    "texture": "tinted_glass",
+    "cost": 6,
+    "states": [],
+    "variants": {},
+    "color": {
+      "r": 42,
+      "g": 39,
+      "b": 43,
+      "lightness": 0.277544
+    }
+  },
+  {
+    "id": "minecraft:white_terracotta",
+    "name": "White Terracotta",
+    "texture": "white_terracotta",
+    "cost": 3,
+    "states": [],
+    "variants": {},
+    "color": {
+      "r": 210,
+      "g": 178,
+      "b": 162,
+      "lightness": 0.787238
+    }
+  }
+]
