@@ -36,6 +36,7 @@
     "prisma:migrate": "prisma migrate deploy",
     "prisma:dev": "prisma migrate dev",
     "atlas": "node scripts/build-texture-atlas.mjs",
+    "dsl:prompt": "tsx scripts/build-dsl-prompt.ts",
     "atlas:audit": "node scripts/audit-texture-pack.mjs",
     "batch:generate": "tsx scripts/batch-generate.ts",
     "batch:status": "tsx scripts/batch-generate.ts",
