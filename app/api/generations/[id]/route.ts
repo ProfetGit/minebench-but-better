@@ -1,5 +1,5 @@
 import { getAuthenticatedUserId } from "@/lib/auth/request";
-import { apiJson, apiServiceError } from "@/lib/gallery/api";
+import { apiJson, apiServiceError } from "@/lib/api/response";
 import {
   GenerationServiceError,
   getSavedGeneration,

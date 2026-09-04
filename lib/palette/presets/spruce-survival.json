@@ -1,0 +1,33 @@
+{
+  "name": "Spruce survival",
+  "mcVersion": "1.21",
+  "roles": {
+    "wall_primary": { "block": "minecraft:spruce_planks" },
+    "wall_secondary": { "block": "minecraft:stripped_spruce_log", "state": { "axis": "x" } },
+    "structure_post": { "block": "minecraft:stripped_spruce_log", "state": { "axis": "y" } },
+    "structure_beam": { "block": "minecraft:spruce_log", "state": { "axis": "x" } },
+    "foundation": { "block": "minecraft:cobblestone" },
+    "floor": { "block": "minecraft:spruce_planks" },
+    "ceiling": { "block": "minecraft:spruce_planks" },
+    "roof_primary": { "block": "minecraft:deepslate_tiles" },
+    "roof_trim": { "ramp": "deepslate_dark" },
+    "roof_support": { "block": "minecraft:spruce_log" },
+    "glass": { "block": "minecraft:glass" },
+    "door": { "block": "minecraft:spruce_door" },
+    "trim": { "block": "minecraft:polished_deepslate" },
+    "accent": { "block": "minecraft:bricks" },
+    "light": { "block": "minecraft:glowstone" },
+    "path": { "block": "minecraft:gravel" }
+  },
+  "ramps": {
+    "deepslate_dark": [
+      "minecraft:deepslate_tiles",
+      "minecraft:polished_deepslate",
+      "minecraft:cobbled_deepslate"
+    ]
+  },
+  "budget": {
+    "maxDistinctBlocks": 14,
+    "maxCost": 6000
+  }
+}

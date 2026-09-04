@@ -1,38 +1,23 @@
-import { summarizeArenaVotes } from "@/lib/arena/voteMath";
-
 export const SITE_NAME = "MineBench";
 export const SITE_URL = "https://minebench.ai";
 export const SITE_HOST = "minebench.ai";
 export const LEGACY_HOSTS = new Set(["minebench.vercel.app", "www.minebench.ai"]);
 
 export const SITE_DESCRIPTION =
-  "MineBench is an AI benchmark for Minecraft-style voxel builds. Compare LLM spatial reasoning with head-to-head votes, live generation, and a public leaderboard.";
+  "MineBench generates survival-practical Minecraft builds. Describe a build, edit the program behind it, swap palettes against a cost budget, and export to Litematica.";
 
-export const DEFAULT_OG_IMAGE = "/readme/arena-dark.png";
+export const DEFAULT_OG_IMAGE = "/icon-512.png";
 
 export const SEO_KEYWORDS = [
   "MineBench",
-  "Mine Bench",
-  "voxel build benchmark",
-  "voxel benchmark",
-  "voxel bench",
-  "voxelbench",
-  "voxelbench alternative",
-  "llm arena",
-  "lm arena",
-  "voxel arena",
-  "ai model arena",
-  "llm benchmark",
-  "ai benchmark",
-  "minecraft ai benchmark",
-  "minecraft benchmark",
-  "spatial reasoning benchmark",
-  "3D reasoning benchmark",
-  "3D spatial reasoning",
-  "AI spatial reasoning",
-  "AI model leaderboard",
-  "LLM leaderboard",
-  "open-source voxel AI benchmark",
+  "Minecraft build generator",
+  "AI Minecraft builds",
+  "survival Minecraft builds",
+  "litematica generator",
+  "minecraft schematic generator",
+  "minecraft house generator",
+  "voxel build generator",
+  "minecraft build palette",
 ] as const;
 
 export function absoluteUrl(path = "/") {
@@ -86,7 +71,7 @@ export const websiteJsonLd = {
   inLanguage: "en-US",
   potentialAction: {
     "@type": "SearchAction",
-    target: `${SITE_URL}/sandbox?prompt={search_term_string}`,
+    target: `${SITE_URL}/?prompt={search_term_string}`,
     "query-input": "required name=search_term_string",
   },
 };
@@ -96,7 +81,7 @@ export const softwareApplicationJsonLd = {
   "@type": "SoftwareApplication",
   name: SITE_NAME,
   applicationCategory: "DeveloperApplication",
-  applicationSubCategory: "AI Spatial Reasoning Benchmark",
+  applicationSubCategory: "Minecraft Build Generator",
   operatingSystem: "Web",
   url: SITE_URL,
   description: SITE_DESCRIPTION,
@@ -107,118 +92,10 @@ export const softwareApplicationJsonLd = {
   },
   keywords: SEO_KEYWORDS.join(", "),
   featureList: [
-    "Head-to-head AI model comparison for voxel builds",
-    "Prompt-driven sandbox generation and 3D spatial evaluation",
-    "Leaderboard with live Elo model rankings",
-    "Blind LLM arena for 3D spatial reasoning",
-    "Open-source voxel and Minecraft-style LLM spatial reasoning benchmark",
+    "Prompt-driven Minecraft build generation",
+    "An editable build program instead of raw block coordinates",
+    "Palette swapping with survival cost budgets",
+    "Structural validation before you build",
+    "Litematica, Sponge schematic and MagicaVoxel export",
   ],
 };
-
-export const datasetJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "Dataset",
-  name: "MineBench AI Spatial Reasoning & Voxel Build Dataset",
-  description:
-    "Open-source benchmark evaluation dataset measuring 3D spatial reasoning in large language models through Minecraft-style voxel generation tasks and pairwise human evaluations.",
-  url: SITE_URL,
-  isAccessibleForFree: true,
-  keywords: [
-    "llm spatial reasoning",
-    "spatial reasoning benchmark",
-    "voxel benchmark",
-    "voxel bench",
-    "voxelbench",
-    "llm arena",
-    "minecraft ai benchmark",
-    "3d reasoning evaluation",
-    "llm leaderboard",
-  ],
-  creator: {
-    "@type": "Organization",
-    name: SITE_NAME,
-    url: SITE_URL,
-  },
-  publisher: {
-    "@type": "Organization",
-    name: SITE_NAME,
-    url: SITE_URL,
-  },
-  license: "https://opensource.org/licenses/MIT",
-};
-
-export function leaderboardItemListJsonLd(
-  models: Array<{ name: string; rank: number; path: string }>,
-) {
-  return {
-    "@context": "https://schema.org",
-    "@type": "ItemList",
-    name: "MineBench AI Spatial Reasoning Leaderboard",
-    description: "Live rankings of AI models on 3D voxel spatial reasoning tasks",
-    itemListElement: models.map((model) => ({
-      "@type": "ListItem",
-      position: model.rank,
-      name: model.name,
-      url: absoluteUrl(model.path),
-    })),
-  };
-}
-
-export function modelDetailJsonLd(params: {
-  key: string;
-  slug?: string;
-  displayName: string;
-  provider: string;
-  eloRating: number;
-  winCount: number;
-  lossCount: number;
-  drawCount: number;
-  bothBadCount: number;
-}) {
-  const { decisiveVotes, totalVotes } = summarizeArenaVotes(params);
-  const winRate = decisiveVotes > 0 ? params.winCount / decisiveVotes : null;
-  const canonicalPath = `/leaderboard/${params.slug ?? params.key}`;
-
-  return {
-    "@context": "https://schema.org",
-    "@type": "WebPage",
-    name: `${params.displayName} stats | ${SITE_NAME}`,
-    url: absoluteUrl(canonicalPath),
-    isPartOf: {
-      "@type": "WebSite",
-      name: SITE_NAME,
-      url: SITE_URL,
-    },
-    about: {
-      "@type": "SoftwareApplication",
-      name: params.displayName,
-      applicationCategory: "DeveloperApplication",
-      provider: {
-        "@type": "Organization",
-        name: params.provider,
-      },
-      additionalProperty: [
-        {
-          "@type": "PropertyValue",
-          name: "Rating",
-          value: Math.round(params.eloRating),
-        },
-        {
-          "@type": "PropertyValue",
-          name: "Win rate",
-          value: winRate != null ? `${(winRate * 100).toFixed(1)}%` : "N/A",
-        },
-        {
-          "@type": "PropertyValue",
-          name: "Decisive votes",
-          value: decisiveVotes,
-        },
-        {
-          "@type": "PropertyValue",
-          name: "Total votes",
-          value: totalVotes,
-        },
-      ],
-    },
-  };
-}

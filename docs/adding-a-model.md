@@ -96,7 +96,7 @@ values, the MineBench default, the output cap, and the OpenRouter fallback.
 
 ## 6. Benchmark profile
 
-`lib/ai/modelBenchmarkProfiles.ts` builds the leaderboard popover.
+`lib/ai/modelBenchmarkProfiles.ts` holds published metadata for a model: run parameters, measured latency and cost. It is display data for the model picker.
 
 - `MODEL_RUN_PARAMETERS` — required; a model missing here has no profile at all.
 - `MODEL_BENCHMARK_METADATA` — the release that produced the cohort plus the

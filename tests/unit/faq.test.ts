@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { FAQ_ITEMS, FAQ_SECTIONS } from "../../lib/faq";
 import { faqPageJsonLd } from "../../lib/seo";
 
@@ -19,36 +18,13 @@ for (const item of FAQ_ITEMS) {
   assert.ok(item.answer.every((paragraph) => paragraph.trim().length > 0));
 }
 
-const galleryMethodology = FAQ_ITEMS.find(
-  (item) => item.id === "how-does-the-gallery-shape-the-benchmark",
-);
-assert.ok(
-  galleryMethodology?.answer.join(" ").includes("highest-voted prompts") &&
-    galleryMethodology.answer.join(" ").includes("run-to-run variation"),
-  "FAQ should explain manual prompt promotion and official retests",
-);
-
-const nondeterminism = FAQ_ITEMS.find(
-  (item) => item.id === "how-does-minebench-account-for-nondeterminism",
-);
-const nondeterminismAnswer = nondeterminism?.answer.join(" ") ?? "";
-assert.ok(
-  nondeterminismAnswer.includes("three times") &&
-    nondeterminismAnswer.includes("provider API costs") &&
-    nondeterminismAnswer.includes("official Gallery prompt") &&
-    nondeterminism?.links?.some((link) => link.href === "/gallery?sort=official"),
-  "FAQ should explain the ideal repeat protocol, cost constraint, and community reruns",
-);
-
-const readme = readFileSync("README.md", "utf8");
-for (const item of FAQ_ITEMS) {
-  // Private evaluations stay discoverable without README promotion
-  if (item.id === "can-organizations-run-private-evaluations") continue;
-  assert.ok(
-    readme.includes(`https://minebench.ai/faq#${item.id}`),
-    `README is missing the FAQ link for ${item.id}`,
-  );
+// The FAQ describes the build generator, not the benchmark it replaced.
+const answers = FAQ_ITEMS.flatMap((item) => item.answer).join(" ").toLowerCase();
+for (const stale of ["leaderboard", "pairwise", "arena", "gallery"]) {
+  assert.ok(!answers.includes(stale), `FAQ still describes the benchmark: ${stale}`);
 }
+assert.ok(FAQ_ITEMS.some((item) => item.answer.join(" ").includes("Litematica")));
+assert.ok(FAQ_ITEMS.some((item) => item.id === "how-are-builds-generated"));
 
 const structuredData = faqPageJsonLd(
   FAQ_ITEMS.map((item) => ({

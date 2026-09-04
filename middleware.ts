@@ -11,25 +11,9 @@ const CONTACT_MAX_PER_SESSION = 3;
 const CONTACT_MAX_PER_IP = 10;
 const NO_IP_MODEL_GLOBAL_GUARDRAIL_MULTIPLIER = 10;
 const CUSTOM_BUILD_WINDOW_MS = 10 * 60 * 1000;
-const GALLERY_REPORT_WINDOW_MS = 60 * 60 * 1000;
-const GALLERY_REPORT_MAX_PER_IP = 20;
-const GALLERY_REPORT_MAX_PER_SESSION = 5;
 const RATE_LIMIT_SESSION_COOKIE = "mb_rls";
 const CUSTOM_BUILD_MAX_CREATE_PER_IP_10M = readIntEnv("CUSTOM_BUILD_MAX_CREATE_PER_IP_10M", 10, 1, 1000);
 const CUSTOM_BUILD_MAX_CREATE_PER_SESSION_10M = readIntEnv("CUSTOM_BUILD_MAX_CREATE_PER_SESSION_10M", 5, 1, 1000);
-const ARENA_IP_GUARDRAIL_MULTIPLIER = readIntEnv("ARENA_IP_GUARDRAIL_MULTIPLIER", 250, 1, 1000);
-const ARENA_BUILD_IP_GUARDRAIL_MULTIPLIER = readIntEnv(
-  "ARENA_BUILD_IP_GUARDRAIL_MULTIPLIER",
-  1000,
-  1,
-  5000,
-);
-const ARENA_NEW_SESSION_IP_GUARDRAIL_MULTIPLIER = readIntEnv(
-  "ARENA_NEW_SESSION_IP_GUARDRAIL_MULTIPLIER",
-  10,
-  1,
-  100,
-);
 const BUCKET_PRUNE_INTERVAL = 256;
 
 type Bucket = { resetAt: number; count: number };
@@ -60,8 +44,8 @@ function getIp(req: NextRequest): IpInfo {
   const requestIp = (req as NextRequest & { ip?: string | null }).ip?.trim();
   if (requestIp) return { value: requestIp, trusted: true };
 
-  const trustForwardedRaw = process.env.ARENA_TRUST_X_FORWARDED_FOR;
-  const trustForwardedFor = readBoolEnv("ARENA_TRUST_X_FORWARDED_FOR", process.env.VERCEL === "1");
+  const trustForwardedRaw = process.env.TRUST_X_FORWARDED_FOR;
+  const trustForwardedFor = readBoolEnv("TRUST_X_FORWARDED_FOR", process.env.VERCEL === "1");
   if (trustForwardedFor) {
     const direct =
       req.headers.get("x-real-ip") ??
@@ -105,49 +89,13 @@ function safeDecodeURIComponent(value: string): string | null {
   }
 }
 
-function maybeRedirectToCanonicalModelSlug(req: NextRequest) {
-  const { pathname } = req.nextUrl;
-  const match = pathname.match(/^\/leaderboard\/([^/]+)$/);
-  if (!match) return null;
-
-  const rawKey = safeDecodeURIComponent(match[1]);
-  if (!rawKey) return null;
-
-  const canonicalSlug = resolveModelSlug(rawKey);
-  if (canonicalSlug && canonicalSlug !== rawKey) {
-    const nextUrl = req.nextUrl.clone();
-    nextUrl.pathname = `/leaderboard/${encodeURIComponent(canonicalSlug)}`;
-    return NextResponse.redirect(nextUrl, 308);
-  }
-  return null;
-}
-
-function isModelDetailPath(pathname: string): boolean {
-  return /^\/api\/leaderboard\/models\/[^/]+$/.test(pathname);
-}
-
+// Parameterised routes share one bucket, so a client cannot dodge the limit by
+// walking through ids.
 function normalizeRateLimitPath(pathname: string): string {
-  if (/^\/api\/lab\/organizations\/[^/]+\/builds\/[^/]+$/.test(pathname)) {
-    return "/api/lab/organizations/:orgSlug/builds/:resultId";
-  }
-  if (
-    /^\/api\/lab\/organizations\/[^/]+\/experiments\/[^/]+\/(?:cohort-upload|export)$/.test(
-      pathname,
-    )
-  ) {
-    return pathname.endsWith("/export")
-      ? "/api/lab/organizations/:orgSlug/experiments/:experimentId/export"
-      : "/api/lab/organizations/:orgSlug/experiments/:experimentId/cohort-upload";
-  }
-  if (/^\/api\/arena\/builds\/[^/]+\/stream$/.test(pathname)) {
-    return "/api/arena/builds/:buildId/stream";
-  }
-  if (/^\/api\/arena\/builds\/[^/]+$/.test(pathname)) {
-    return "/api/arena/builds/:buildId";
-  }
-  if (isModelDetailPath(pathname)) {
-    return "/api/leaderboard/models/:modelKey";
-  }
+  const generation = pathname.match(
+    /^\/api\/generations\/[^/]+(\/(?:cancel|retry|download|artifacts\/[^/]+))?$/,
+  );
+  if (generation) return `/api/generations/:id${generation[1] ?? ""}`;
   return pathname;
 }
 
@@ -246,22 +194,12 @@ export async function middleware(req: NextRequest) {
   const canonicalRedirect = maybeRedirectToCanonicalHost(req);
   if (canonicalRedirect) return canonicalRedirect;
 
-  const modelSlugRedirect = maybeRedirectToCanonicalModelSlug(req);
-  if (modelSlugRedirect) return modelSlugRedirect;
-
   const { pathname } = req.nextUrl;
-  const isLabApi = pathname.startsWith("/api/lab/");
-  const isGalleryAccountApi = hasSupabaseAuthCookie(req.headers.get("cookie")) && (
-    pathname.startsWith("/api/generations") || pathname.startsWith("/api/gallery")
-  );
+  const isAccountApi =
+    hasSupabaseAuthCookie(req.headers.get("cookie")) && pathname.startsWith("/api/generations");
   const refreshesSupabase =
-    pathname.startsWith("/lab") ||
-    isLabApi ||
-    pathname === "/sandbox" ||
-    pathname.startsWith("/gallery") ||
-    pathname.startsWith("/admin/gallery") ||
-    pathname.startsWith("/admin/private-evaluations") ||
-    isGalleryAccountApi ||
+    isAccountApi ||
+    pathname === "/" ||
     pathname === "/account" ||
     pathname === "/sign-in" ||
     pathname === "/sign-up" ||
@@ -275,19 +213,13 @@ export async function middleware(req: NextRequest) {
   if (!pathname.startsWith("/api/")) return NextResponse.next();
   if (pathname.startsWith("/api/admin/")) return NextResponse.next();
   const isContactApi = pathname === "/api/contact";
-  const isArenaApi = pathname.startsWith("/api/arena/");
-  const isModelDetailApi = isModelDetailPath(pathname);
-  const isArenaBuildAsset = /^\/api\/arena\/builds\/[^/]+(?:\/stream)?$/.test(pathname);
   const isCustomBuildCreate =
     (pathname === "/api/custom-builds" || pathname === "/api/generations") && req.method === "POST";
-  const isGalleryReport = pathname === "/api/gallery/reports" && req.method === "POST";
   const maxPerWindow = pathname === "/api/local/voxel-exec" ? MAX_PER_WINDOW_LOCAL_EXEC : MAX_PER_WINDOW;
   const { value: ip, trusted: hasTrustedIp } = getIp(req);
-  const modelAnonymousBucketId = isModelDetailApi && !hasTrustedIp
-    ? getAnonymousBucketId(req, null)
-    : null;
-  const modelSession = modelAnonymousBucketId
-    ? getRateLimitSession(req, modelAnonymousBucketId)
+  const anonymousBucketId = !hasTrustedIp ? getAnonymousBucketId(req, null) : null;
+  const anonymousSession = anonymousBucketId
+    ? getRateLimitSession(req, anonymousBucketId)
     : null;
   const bucketPath = normalizeRateLimitPath(pathname);
   const ipBucket = ip ?? "unknown";
@@ -297,34 +229,9 @@ export async function middleware(req: NextRequest) {
   const contactSession = isContactApi
     ? getRateLimitSession(req, getAnonymousBucketId(req, contactIp))
     : null;
-  const arenaSession = isArenaApi
-    ? getRateLimitSession(req, getAnonymousBucketId(req, ip))
-    : null;
   const customBuildSession = isCustomBuildCreate
     ? getRateLimitSession(req, getAnonymousBucketId(req, ip))
     : null;
-  const galleryReportSession = isGalleryReport
-    ? getRateLimitSession(req, getAnonymousBucketId(req, ip))
-    : null;
-  const arenaIpRules = ip
-    ? [
-        // wide client guardrail when an ip signal exists
-        {
-          key: `ip:${ip}:${bucketPath}`,
-          maxPerWindow: maxPerWindow * ARENA_IP_GUARDRAIL_MULTIPLIER,
-        },
-      ]
-    : [];
-  const arenaNewSessionIpRules =
-    arenaSession?.isNew && ip && !isArenaBuildAsset
-      ? [
-          // cookie-drop guardrail, looser than per-session
-          {
-            key: `anon:${ip}:${bucketPath}`,
-            maxPerWindow: maxPerWindow * ARENA_NEW_SESSION_IP_GUARDRAIL_MULTIPLIER,
-          },
-        ]
-      : [];
   const rules: RateLimitRule[] = isCustomBuildCreate
     ? [
         ...(ip
@@ -340,23 +247,6 @@ export async function middleware(req: NextRequest) {
           key: `custom-build-session:${customBuildSession?.bucketId ?? ipBucket}`,
           maxPerWindow: CUSTOM_BUILD_MAX_CREATE_PER_SESSION_10M,
           windowMs: CUSTOM_BUILD_WINDOW_MS,
-        },
-      ]
-    : isGalleryReport
-    ? [
-        ...(hasTrustedIp && ip
-          ? [
-              {
-                key: `gallery-report-ip:${ip}`,
-                maxPerWindow: GALLERY_REPORT_MAX_PER_IP,
-                windowMs: GALLERY_REPORT_WINDOW_MS,
-              },
-            ]
-          : []),
-        {
-          key: `gallery-report-session:${galleryReportSession?.bucketId ?? ipBucket}`,
-          maxPerWindow: GALLERY_REPORT_MAX_PER_SESSION,
-          windowMs: GALLERY_REPORT_WINDOW_MS,
         },
       ]
     : isContactApi
@@ -376,35 +266,11 @@ export async function middleware(req: NextRequest) {
           windowMs: CONTACT_WINDOW_MS,
         },
       ]
-    : isArenaApi
-    ? isArenaBuildAsset
-      ? ip
-        ? [
-            // build fetches are heavy but numerous during one arena page
-            {
-              key: `ip:${ip}:${bucketPath}`,
-              maxPerWindow: maxPerWindow * ARENA_BUILD_IP_GUARDRAIL_MULTIPLIER,
-            },
-          ]
-        : arenaSession
-          ? [
-            // no trusted ip, avoid one shared unknown bucket
-            {
-              key: `session:${arenaSession.bucketId}:${bucketPath}`,
-              maxPerWindow: maxPerWindow * ARENA_BUILD_IP_GUARDRAIL_MULTIPLIER,
-            },
-          ]
-          : []
-      : [
-          ...arenaIpRules,
-          ...arenaNewSessionIpRules,
-          { key: `session:${arenaSession?.bucketId}:${bucketPath}`, maxPerWindow },
-        ]
     : [
-        ...(modelAnonymousBucketId
+        ...(anonymousBucketId
           ? [
               {
-                key: `anon:${modelAnonymousBucketId}:${bucketPath}`,
+                key: `anon:${anonymousBucketId}:${bucketPath}`,
                 maxPerWindow: MAX_PER_WINDOW * NO_IP_MODEL_GLOBAL_GUARDRAIL_MULTIPLIER,
               },
               {
@@ -414,7 +280,7 @@ export async function middleware(req: NextRequest) {
             ]
           : []),
         {
-          key: `${modelSession ? `session:${modelSession.bucketId}` : ip ? `ip:${ip}` : `session:${ipBucket}`}:${bucketPath}`,
+          key: `${anonymousSession ? `session:${anonymousSession.bucketId}` : ip ? `ip:${ip}` : `session:${ipBucket}`}:${bucketPath}`,
           maxPerWindow,
         },
       ];
@@ -424,12 +290,10 @@ export async function middleware(req: NextRequest) {
     return rateLimitedResponse(rateLimit.retryAfterSeconds);
   }
 
-  const response = isLabApi
+  const response = isAccountApi
     ? await (await import("@/lib/supabase/middleware")).refreshSupabaseSession(req)
-    : isGalleryAccountApi
-      ? await (await import("@/lib/supabase/middleware")).refreshSupabaseSession(req)
-      : NextResponse.next();
-  const rateLimitSession = arenaSession ?? modelSession ?? contactSession ?? customBuildSession ?? galleryReportSession;
+    : NextResponse.next();
+  const rateLimitSession = anonymousSession ?? contactSession ?? customBuildSession;
   if (rateLimitSession?.cookieValue) {
     response.cookies.set(RATE_LIMIT_SESSION_COOKIE, rateLimitSession.cookieValue, {
       httpOnly: true,

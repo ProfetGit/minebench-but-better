@@ -1,3 +1,7 @@
+// Builds at or above this many blocks are pre-meshed on the server, which
+// keeps face visibility and ambient occlusion off the browser critical path.
+export const MESH_FACTS_MIN_BLOCKS = 150_000;
+
 import { getRenderKind } from "@/lib/blocks/registry";
 import {
   computeFaceAO,

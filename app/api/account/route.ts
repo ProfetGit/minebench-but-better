@@ -4,13 +4,13 @@ import {
   getAuthenticatedAuthUser,
   getAuthenticatedUserId,
 } from "@/lib/auth/request";
-import { appendArenaSessionCookie } from "@/lib/arena/session";
 import {
   deleteMineBenchAccount,
   serializeAccount,
 } from "@/lib/account/service";
-import { apiJson, apiServiceError } from "@/lib/gallery/api";
-import { updateGalleryNickname } from "@/lib/gallery/service";
+import { apiJson, apiServiceError } from "@/lib/api/response";
+import { appendPublicSessionCookie } from "@/lib/publicSession";
+import { updatePublicNickname } from "@/lib/account/nickname";
 
 export const runtime = "nodejs";
 
@@ -39,7 +39,7 @@ export async function PATCH(request: Request) {
     return apiJson({ error: { code: "invalid_request", message: "Check the public name." } }, 400);
   }
   try {
-    await updateGalleryNickname(userId, parsed.data.publicNickname);
+    await updatePublicNickname(userId, parsed.data.publicNickname);
     const account = await getPublicAccount(userId);
     return account
       ? apiJson({ account: serializeAccount(account) })
@@ -59,7 +59,7 @@ export async function DELETE(request: Request) {
   if (!account) return authenticationRequired("Sign in again to delete this account.");
   try {
     const response = apiJson(await deleteMineBenchAccount(account.id));
-    appendArenaSessionCookie(response, crypto.randomUUID());
+    appendPublicSessionCookie(response, crypto.randomUUID());
     return response;
   } catch (error) {
     return apiServiceError(error);

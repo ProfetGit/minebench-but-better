@@ -11,14 +11,6 @@ MineBench works well with Vercel and Supabase Postgres.
 - `SUPABASE_STORAGE_BUCKET`: private bucket for build payload objects (default `builds`)
 - `CONTACT_SMTP_PASSWORD`: Google Workspace app password for `support@minebench.ai`
 
-## Rank Snapshot Scheduling
-
-For leaderboard movement markers:
-
-- `vercel.json` schedules `/api/admin/rank-snapshots/capture` every hour
-- set `CRON_SECRET` in Vercel
-- keep `ADMIN_TOKEN` available for manual and admin calls
-
 ## Supabase Storage Setup for Large Build Imports
 
 1. Create a private bucket, for example `builds`, in Supabase Storage.

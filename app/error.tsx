@@ -34,7 +34,7 @@ export default function RouteError({ error, reset }: { error: Error & { digest?:
               href="/"
               className="inline-flex min-h-11 items-center text-sm font-medium text-muted underline-offset-4 hover:text-fg hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
             >
-              Back to arena
+              Back to the builder
             </Link>
           </div>
         </div>

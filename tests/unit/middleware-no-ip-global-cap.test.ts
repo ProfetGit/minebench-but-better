@@ -4,13 +4,13 @@ import { NextRequest } from "next/server";
 import { middleware } from "../../middleware";
 
 async function main() {
-  delete process.env.ARENA_TRUST_X_FORWARDED_FOR;
+  delete process.env.TRUST_X_FORWARDED_FOR;
   delete process.env.VERCEL;
   process.env.ARENA_FORWARDED_IP_FALLBACK = "1";
 
   for (let index = 0; index < 180; index += 1) {
     const request = new NextRequest(
-      `http://localhost/api/leaderboard/models/global-model-${index}`,
+      `http://localhost/api/generations/global-model-${index}`,
       {
         headers: {
           cookie: `mb_rls=rotating-session-${index}`,
@@ -24,7 +24,7 @@ async function main() {
   }
 
   const limited = await middleware(
-    new NextRequest("http://localhost/api/leaderboard/models/global-model-180", {
+    new NextRequest("http://localhost/api/generations/global-model-180", {
       headers: {
         cookie: "mb_rls=rotating-session-180",
         "user-agent": "rotating-client-180",

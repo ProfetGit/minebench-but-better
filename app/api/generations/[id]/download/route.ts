@@ -1,6 +1,6 @@
 import { getAuthenticatedUserId } from "@/lib/auth/request";
 import { downloadCustomBuildArtifactBytes, createCustomBuildArtifactSignedUrl } from "@/lib/custom-builds/storage";
-import { apiJson, apiServiceError } from "@/lib/gallery/api";
+import { apiJson, apiServiceError } from "@/lib/api/response";
 import { GenerationServiceError, getOwnedGenerationArtifact } from "@/lib/generations/service";
 
 export const runtime = "nodejs";

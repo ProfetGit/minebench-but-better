@@ -7,7 +7,7 @@ import { join } from "node:path";
 
 const schema = readFileSync("prisma/schema.prisma", "utf8");
 const modelNames = [...schema.matchAll(/^model (\w+) \{/gm)].map(([, name]) => name);
-assert.ok(modelNames.length >= 11, "expected the Prisma schema to declare its models");
+assert.ok(modelNames.length >= 8, "expected the Prisma schema to declare its models");
 
 const migrationsDir = "prisma/migrations";
 const migrationSql = readdirSync(migrationsDir)

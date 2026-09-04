@@ -3,7 +3,7 @@
  *
  * we intentionally use sessionStorage (not localStorage) — cached ranking data
  * should not outlive the tab. first-party concern: don't ship a stale
- * leaderboard to a user who came back a day later expecting fresh data.
+ * page to a user who came back a day later expecting fresh data.
  */
 
 type Entry<T> = {

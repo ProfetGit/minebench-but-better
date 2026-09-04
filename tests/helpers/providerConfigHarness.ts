@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { generateVoxelBuild } from "../../lib/ai/generateVoxelBuild";
 import { getModelByKey, type ModelKey, type Provider } from "../../lib/ai/modelCatalog";
-import { MODEL_KEY_BY_SLUG, MODEL_SLUG } from "../../scripts/uploadsCatalog";
+import { MODEL_KEY_BY_SLUG, MODEL_SLUG } from "../../lib/ai/modelCatalog";
 import type { CustomRequestBody, CustomRequestHeaders } from "../../lib/ai/customProviderConfig";
 
 export type CapturedRequest = {

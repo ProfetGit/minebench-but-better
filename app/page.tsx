@@ -1,30 +1,27 @@
 import type { Metadata } from "next";
-import { Arena } from "@/components/arena/Arena";
-import { breadcrumbJsonLd, datasetJsonLd, DEFAULT_OG_IMAGE, SEO_KEYWORDS } from "@/lib/seo";
+import { Builder } from "@/components/builder/Builder";
+import { breadcrumbJsonLd, DEFAULT_OG_IMAGE, SEO_KEYWORDS, SITE_DESCRIPTION } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  description:
-    "Compare AI models in a Minecraft-style voxel build benchmark. Vote on head-to-head generations and track a live LLM leaderboard.",
+  description: SITE_DESCRIPTION,
   keywords: [...SEO_KEYWORDS],
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "MineBench | Voxel Build AI Benchmark",
-    description:
-      "Compare AI models in a Minecraft-style voxel build benchmark with live voting and rankings.",
+    title: "MineBench | Minecraft Build Generator",
+    description: SITE_DESCRIPTION,
     url: "/",
-    images: [{ url: DEFAULT_OG_IMAGE, alt: "MineBench arena with two voxel builds" }],
+    images: [{ url: DEFAULT_OG_IMAGE, alt: "MineBench" }],
   },
   twitter: {
-    title: "MineBench | Voxel Build AI Benchmark",
-    description:
-      "Compare AI models in a Minecraft-style voxel build benchmark with live voting and rankings.",
+    title: "MineBench | Minecraft Build Generator",
+    description: SITE_DESCRIPTION,
     images: [DEFAULT_OG_IMAGE],
   },
 };
 
-const breadcrumbData = breadcrumbJsonLd([{ name: "Arena", path: "/" }]);
+const breadcrumbData = breadcrumbJsonLd([{ name: "Builder", path: "/" }]);
 
 export default function HomePage() {
   return (
@@ -33,12 +30,7 @@ export default function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbData) }}
       />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(datasetJsonLd) }}
-      />
-      <h1 className="sr-only">MineBench AI voxel build benchmark</h1>
-      <Arena />
+      <Builder />
     </>
   );
 }

@@ -1,6 +1,10 @@
 import type { ModelKey } from "@/lib/ai/modelCatalog";
 import generatedMetrics from "@/lib/ai/modelBenchmarkMetrics.generated.json";
-import { BENCHMARK_PROMPT_COHORT_ID } from "@/lib/benchmark/prompts";
+
+// The published metrics in modelBenchmarkMetrics.generated.json were measured
+// against this prompt cohort. The cohort itself belonged to the benchmark and
+// is gone; the identity stays so stale metrics are still rejected.
+const BENCHMARK_PROMPT_COHORT_ID = "prompts-v1:bd8c28367f8a97f2";
 
 export type ModelRunParameter = {
   label: string;

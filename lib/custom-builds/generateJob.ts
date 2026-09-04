@@ -8,9 +8,9 @@ import type { Provider } from "@/lib/ai/modelCatalog";
 import { generateVoxelBuild, type GenerateVoxelBuildParams } from "@/lib/ai/generateVoxelBuild";
 import { MAX_BLOCKS_BY_GRID, type GridSize } from "@/lib/ai/limits";
 import type { ProviderApiKeys } from "@/lib/ai/types";
-import { encodeBinaryArtifact } from "@/lib/arena/binaryArtifact";
+import { encodeBinaryArtifact } from "@/lib/voxel/binaryArtifact";
 import { recordGenerationError, recordGenerationSuccess } from "@/lib/observability/cloudwatch";
-import { ARENA_MESH_FACTS_MIN_BLOCKS } from "@/lib/arena/types";
+import { MESH_FACTS_MIN_BLOCKS } from "@/lib/voxel/meshFacts";
 import { getPalette } from "@/lib/blocks/palettes";
 import {
   buildCustomBuildPreview,
@@ -33,7 +33,7 @@ import {
   downloadCustomBuildArtifactBytes,
 } from "@/lib/custom-builds/storage";
 import { prisma } from "@/lib/prisma";
-import { buildGalleryPreviewSvg } from "@/lib/gallery/preview";
+import { buildGenerationPreviewSvg } from "@/lib/generations/preview";
 import { packVoxelBlocks } from "@/lib/voxel/packedBlocks";
 import { createVoxelMeshFacts, encodeVoxelMeshFacts } from "@/lib/voxel/meshFacts";
 import { validateVoxelBuild } from "@/lib/voxel/validate";
@@ -518,7 +518,7 @@ export async function runCustomBuildGenerateJob(
 
     throwIfCustomBuildLeaseLost(opts.signal);
     const viewerKind =
-      canonicalBuild.blocks.length >= ARENA_MESH_FACTS_MIN_BLOCKS
+      canonicalBuild.blocks.length >= MESH_FACTS_MIN_BLOCKS
         ? "viewer_mbf1"
         : "viewer_mbv4";
     const viewerBytes =
@@ -550,7 +550,7 @@ export async function runCustomBuildGenerateJob(
     emitCustomBuildEvent(customBuild.id, "artifact_ready", { kind: viewerKind });
 
     throwIfCustomBuildLeaseLost(opts.signal);
-    const previewSvg = new TextEncoder().encode(buildGalleryPreviewSvg(canonicalBuild));
+    const previewSvg = new TextEncoder().encode(buildGenerationPreviewSvg(canonicalBuild));
     await persistCustomBuildArtifact({
       customBuildId: customBuild.id,
       publicId: customBuild.publicId,

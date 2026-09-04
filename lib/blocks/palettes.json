@@ -97,6 +97,27 @@
       "render": "transparent"
     },
     { "id": "amethyst_block", "name": "Amethyst Block", "category": "utility" },
-    { "id": "ancient_debris", "name": "Ancient Debris", "category": "utility" }
+    { "id": "ancient_debris", "name": "Ancient Debris", "category": "utility" },
+
+    { "id": "birch_door", "name": "Birch door", "category": "building", "render": "cutout" },
+    { "id": "cobbled_deepslate", "name": "Cobbled Deepslate", "category": "building" },
+    { "id": "dark_oak_door", "name": "Dark Oak door", "category": "building", "render": "cutout" },
+    { "id": "dark_oak_log", "name": "Dark Oak log", "category": "building" },
+    { "id": "deepslate_bricks", "name": "Deepslate Bricks", "category": "building" },
+    { "id": "deepslate_tiles", "name": "Deepslate Tiles", "category": "building" },
+    { "id": "mossy_cobblestone", "name": "Mossy Cobblestone", "category": "building" },
+    { "id": "mud_bricks", "name": "Mud Bricks", "category": "building" },
+    { "id": "oak_door", "name": "Oak door", "category": "building", "render": "cutout" },
+    { "id": "polished_andesite", "name": "Polished Andesite", "category": "building" },
+    { "id": "polished_deepslate", "name": "Polished Deepslate", "category": "building" },
+    { "id": "polished_diorite", "name": "Polished Diorite", "category": "building" },
+    { "id": "polished_granite", "name": "Polished Granite", "category": "building" },
+    { "id": "shroomlight", "name": "Shroomlight", "category": "building" },
+    { "id": "spruce_door", "name": "Spruce door", "category": "building", "render": "cutout" },
+    { "id": "stripped_birch_log", "name": "Stripped birch log", "category": "building" },
+    { "id": "stripped_dark_oak_log", "name": "Stripped dark Oak log", "category": "building" },
+    { "id": "stripped_oak_log", "name": "Stripped oak log", "category": "building" },
+    { "id": "stripped_spruce_log", "name": "Stripped spruce log", "category": "building" },
+    { "id": "white_terracotta", "name": "White Terracotta", "category": "building" }
   ]
 }

@@ -26,12 +26,6 @@ export function serializeAccount(account: PublicAccount) {
     displayName: account.displayName,
     publicNickname: account.publicNickname,
     createdAt: account.createdAt.toISOString(),
-    gallerySuspension: account.gallerySuspendedAt
-      ? {
-          suspendedAt: account.gallerySuspendedAt.toISOString(),
-          reason: account.gallerySuspensionReason,
-        }
-      : null,
     hostedGeneration: {
       used: account.hostedGenerationCount,
       limit: account.hostedGenerationLimit,
@@ -71,30 +65,12 @@ export async function deleteMineBenchAccount(
     `);
     if (!account) throw new AccountServiceError("not_found", "Account not found.");
 
-    const retainedBuilds = await tx.customBuild.findMany({
-      where: {
-        ownerId: userId,
-        status: "succeeded",
-        galleryExamples: {
-          some: {
-            removedAt: null,
-            adminHiddenAt: null,
-            candidate: { removedAt: null, adminHiddenAt: null },
-          },
-        },
-      },
-      select: { id: true },
-    });
-    const retainedBuildIds = retainedBuilds.map(({ id }) => id);
-    const nonRetainedBuildWhere = {
-      ownerId: userId,
-      ...(retainedBuildIds.length > 0 ? { id: { notIn: retainedBuildIds } } : {}),
-    };
+    const ownedBuildWhere = { ownerId: userId };
 
     await tx.customBuildSecret.deleteMany({ where: { customBuild: { ownerId: userId } } });
     await tx.customBuildJob.updateMany({
       where: {
-        customBuild: nonRetainedBuildWhere,
+        customBuild: ownedBuildWhere,
         status: { in: ["queued", "running"] },
       },
       data: {
@@ -107,7 +83,7 @@ export async function deleteMineBenchAccount(
     });
     await tx.customBuild.updateMany({
       where: {
-        ...nonRetainedBuildWhere,
+        ...ownedBuildWhere,
         status: { in: ["queued", "running"] },
       },
       data: {
@@ -119,19 +95,8 @@ export async function deleteMineBenchAccount(
         errorRetryable: false,
       },
     });
-    await tx.galleryExample.updateMany({
-      where: {
-        customBuild: nonRetainedBuildWhere,
-      },
-      data: {
-        postAnonymously: true,
-        removedAt: now,
-        purgeAt: now,
-        previewRetained: false,
-      },
-    });
     await tx.customBuild.updateMany({
-      where: nonRetainedBuildWhere,
+      where: ownedBuildWhere,
       data: {
         requestedIpHash: null,
         requestedUserAgentHash: null,
@@ -143,47 +108,6 @@ export async function deleteMineBenchAccount(
       },
     });
 
-    if (retainedBuildIds.length > 0) {
-      await tx.customBuildJob.deleteMany({
-        where: { customBuildId: { in: retainedBuildIds } },
-      });
-      await tx.customBuildEvent.deleteMany({
-        where: { customBuildId: { in: retainedBuildIds } },
-      });
-      await tx.customBuild.updateMany({
-        where: { id: { in: retainedBuildIds }, ownerId: userId },
-        data: {
-          requestedIpHash: null,
-          requestedUserAgentHash: null,
-        },
-      });
-    }
-
-    await tx.galleryCandidate.updateMany({
-      where: { uploaderId: userId },
-      data: { postAnonymously: true },
-    });
-    await tx.galleryCandidate.updateMany({
-      where: { selectedById: userId },
-      data: { selectedById: null },
-    });
-    await tx.galleryExample.updateMany({
-      where: { contributorId: userId },
-      data: { postAnonymously: true },
-    });
-
-    await tx.$executeRaw(Prisma.sql`
-      UPDATE "Vote"
-      SET "userId" = NULL,
-          "sessionId" = gen_random_uuid()::text
-      WHERE "userId" = ${userId}::uuid
-    `);
-    await tx.$executeRaw(Prisma.sql`
-      UPDATE "GalleryVote"
-      SET "userId" = NULL,
-          "sessionId" = gen_random_uuid()::text
-      WHERE "userId" = ${userId}::uuid
-    `);
     await tx.$executeRaw(Prisma.sql`
       UPDATE "PublicSessionActivity"
       SET "userId" = NULL,
@@ -195,44 +119,6 @@ export async function deleteMineBenchAccount(
       WHERE "userId" = ${userId}::uuid
     `);
 
-    await tx.galleryModerationRecord.updateMany({
-      where: { OR: [{ actorUserId: userId }, { subjectUserId: userId }] },
-      data: {
-        note: null,
-        safeSnapshot: Prisma.DbNull,
-        sessionHash: null,
-        ipHmac: null,
-      },
-    });
-    await tx.galleryModerationRecord.updateMany({
-      where: { actorUserId: userId },
-      data: { actorUserId: null },
-    });
-    await tx.galleryModerationRecord.updateMany({
-      where: { subjectUserId: userId },
-      data: { subjectUserId: null },
-    });
-    await tx.galleryVoteBlock.deleteMany({ where: { userId } });
-    await tx.galleryVoteBlock.updateMany({
-      where: { reversedById: userId },
-      data: { reversedById: null },
-    });
-    await tx.user.updateMany({
-      where: { gallerySuspendedById: userId },
-      data: { gallerySuspendedById: null },
-    });
-
-    await tx.organizationMembership.deleteMany({ where: { userId } });
-    await tx.organizationInvitation.deleteMany({
-      where: {
-        OR: [
-          { authUserId: userId },
-          { acceptedById: userId },
-          { email: { equals: account.email, mode: "insensitive" } },
-        ],
-      },
-    });
-
     await tx.user.update({
       where: { id: userId },
       data: {
@@ -242,10 +128,6 @@ export async function deleteMineBenchAccount(
         publicNicknameNormalized: null,
         lastSeenAt: null,
         isMineBenchAdmin: false,
-        gallerySuspendedAt: null,
-        gallerySuspensionReason: null,
-        gallerySuspendedById: null,
-        galleryRestoredAt: null,
         totalGenerationCount: 0,
         hostedGenerationCount: 0,
         hostedGenerationLimit: 0,

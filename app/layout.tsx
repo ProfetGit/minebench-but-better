@@ -76,7 +76,7 @@ export const metadata: Metadata = {
     images: [
       {
         url: DEFAULT_OG_IMAGE,
-        alt: "MineBench arena comparing AI-generated voxel builds",
+        alt: "MineBench Minecraft build generator",
       },
     ],
   },

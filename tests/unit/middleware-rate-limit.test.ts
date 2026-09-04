@@ -4,45 +4,45 @@ import { NextRequest } from "next/server";
 import { middleware } from "../../middleware";
 
 async function main() {
-  process.env.ARENA_TRUST_X_FORWARDED_FOR = "1";
+  process.env.TRUST_X_FORWARDED_FOR = "1";
   const ip = "203.0.113.42";
 
   for (let index = 0; index < 18; index += 1) {
     const request = new NextRequest(
-      `http://localhost/api/leaderboard/models/model-${index}`,
+      `http://localhost/api/generations/model-${index}`,
       { headers: { "x-real-ip": ip } },
     );
     assert.equal((await middleware(request)).status, 200);
   }
 
   const limited = await middleware(
-    new NextRequest("http://localhost/api/leaderboard/models/model-18", {
+    new NextRequest("http://localhost/api/generations/model-18", {
       headers: { "x-real-ip": ip },
     }),
   );
   assert.equal(limited.status, 429);
 
   const firstAnonymous = await middleware(
-    new NextRequest("http://localhost/api/leaderboard/models/anonymous-model-0"),
+    new NextRequest("http://localhost/api/generations/anonymous-model-0"),
   );
   assert.equal(firstAnonymous.status, 200);
   assert.match(firstAnonymous.headers.get("set-cookie") ?? "", /mb_rls=/);
 
   for (let index = 1; index < 18; index += 1) {
     const request = new NextRequest(
-      `http://localhost/api/leaderboard/models/anonymous-model-${index}`,
+      `http://localhost/api/generations/anonymous-model-${index}`,
     );
     assert.equal((await middleware(request)).status, 200);
   }
 
   const anonymousLimited = await middleware(
-    new NextRequest("http://localhost/api/leaderboard/models/anonymous-model-18"),
+    new NextRequest("http://localhost/api/generations/anonymous-model-18"),
   );
   assert.equal(anonymousLimited.status, 429);
 
   for (let index = 0; index < 19; index += 1) {
     const request = new NextRequest(
-      `http://localhost/api/leaderboard/models/shared-model-${index}`,
+      `http://localhost/api/generations/shared-model-${index}`,
       {
         headers: {
           cookie: `mb_rls=review-session-${index}`,
@@ -55,7 +55,7 @@ async function main() {
 
   for (let index = 0; index < 18; index += 1) {
     const request = new NextRequest(
-      `http://localhost/api/leaderboard/models/session-model-${index}`,
+      `http://localhost/api/generations/session-model-${index}`,
       {
         headers: {
           cookie: "mb_rls=review-session",
@@ -67,7 +67,7 @@ async function main() {
   }
 
   const sessionLimited = await middleware(
-    new NextRequest("http://localhost/api/leaderboard/models/session-model-18", {
+    new NextRequest("http://localhost/api/generations/session-model-18", {
       headers: {
         cookie: "mb_rls=review-session",
         "user-agent": "strict-session-client",
@@ -75,21 +75,6 @@ async function main() {
     }),
   );
   assert.equal(sessionLimited.status, 429);
-
-  const labIp = "203.0.113.84";
-  for (let index = 0; index < 18; index += 1) {
-    const request = new NextRequest(
-      `http://localhost/api/lab/organizations/test-${index}/builds/private-build-${index}`,
-      { headers: { "x-real-ip": labIp } },
-    );
-    assert.equal((await middleware(request)).status, 200);
-  }
-  const labLimited = await middleware(
-    new NextRequest("http://localhost/api/lab/organizations/test-18/builds/private-build-18", {
-      headers: { "x-real-ip": labIp },
-    }),
-  );
-  assert.equal(labLimited.status, 429);
 
   const contactSessionHeaders = {
     cookie: "mb_rls=contact-session",
@@ -151,23 +136,6 @@ async function main() {
     method: "POST",
     headers: generationHeaders,
   }))).status, 429);
-
-  const reportHeaders = {
-    cookie: "mb_rls=gallery-report-session",
-    "x-real-ip": "203.0.113.152",
-  };
-  for (let index = 0; index < 5; index += 1) {
-    assert.equal((await middleware(new NextRequest("http://localhost/api/gallery/reports", {
-      method: "POST",
-      headers: reportHeaders,
-    }))).status, 200);
-  }
-  const reportLimited = await middleware(new NextRequest("http://localhost/api/gallery/reports", {
-    method: "POST",
-    headers: reportHeaders,
-  }));
-  assert.equal(reportLimited.status, 429);
-  assert.ok(Number(reportLimited.headers.get("retry-after")) > 3_500);
 
   console.log("middleware rate-limit contract checks passed");
 }

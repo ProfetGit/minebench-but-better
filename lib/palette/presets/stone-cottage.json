@@ -1,0 +1,26 @@
+{
+  "name": "Stone cottage",
+  "mcVersion": "1.21",
+  "roles": {
+    "wall_primary": { "block": "minecraft:stone_bricks" },
+    "wall_secondary": { "block": "minecraft:cobblestone" },
+    "structure_post": { "block": "minecraft:oak_log", "state": { "axis": "y" } },
+    "structure_beam": { "block": "minecraft:oak_log", "state": { "axis": "x" } },
+    "foundation": { "block": "minecraft:cobblestone" },
+    "floor": { "block": "minecraft:oak_planks" },
+    "ceiling": { "block": "minecraft:oak_planks" },
+    "roof_primary": { "block": "minecraft:bricks" },
+    "roof_trim": { "block": "minecraft:mossy_cobblestone" },
+    "roof_support": { "block": "minecraft:oak_log" },
+    "glass": { "block": "minecraft:glass" },
+    "door": { "block": "minecraft:oak_door" },
+    "trim": { "block": "minecraft:smooth_stone" },
+    "accent": { "block": "minecraft:mossy_stone_bricks" },
+    "light": { "block": "minecraft:shroomlight" },
+    "path": { "block": "minecraft:gravel" }
+  },
+  "budget": {
+    "maxDistinctBlocks": 12,
+    "maxCost": 5000
+  }
+}

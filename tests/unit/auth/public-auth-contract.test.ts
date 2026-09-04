@@ -7,7 +7,7 @@ import {
 } from "../../../lib/auth/account";
 import { parsePublicOAuthProvider } from "../../../lib/auth/providers";
 import { resolveRequestOrigin, safeNextPath } from "../../../lib/auth/redirects";
-import { readArenaSessionId } from "../../../lib/arena/session";
+import { readPublicSessionId } from "../../../lib/publicSession";
 
 assert.equal(safeNextPath("/account?tab=rankings"), "/account?tab=rankings");
 assert.equal(safeNextPath("https://attacker.test/account"), "/account");
@@ -45,17 +45,13 @@ assert.equal(hasAuthenticationMethod([{ method: "password", timestamp: 1 }], "pa
 assert.equal(hasAuthenticationMethod(["recovery"], "recovery"), true);
 assert.equal(hasAuthenticationMethod([{ method: "oauth", timestamp: 1 }], "password"), false);
 assert.equal(isPasswordRecoveryMethod([{ method: "otp", timestamp: 1 }]), true);
-assert.equal(readArenaSessionId("a=1; mb_session=session-123; b=2"), "session-123");
-assert.equal(readArenaSessionId("a=1"), null);
+assert.equal(readPublicSessionId("a=1; mb_session=session-123; b=2"), "session-123");
+assert.equal(readPublicSessionId("a=1"), null);
 
 const schema = readFileSync("prisma/schema.prisma", "utf8");
-const migration = readFileSync(
-  "prisma/migrations/20260825120000_public_vote_ownership/migration.sql",
-  "utf8",
-);
-assert.match(schema, /userId String\? @db\.Uuid/);
-assert.match(schema, /@@index\(\[userId, createdAt\]\)/);
-assert.match(migration, /ON DELETE SET NULL/);
+// Presence rows point at an account optionally, and survive its deletion.
+assert.match(schema, /userId\s+String\?\s+@db\.Uuid/);
+assert.match(schema, /onDelete: SetNull/);
 
 const actions = readFileSync("app/(auth)/actions.ts", "utf8");
 for (const method of [
@@ -88,41 +84,18 @@ assert.match(resetPasswordPage, /Current password/);
 assert.match(resetPasswordPage, /Verify your email first/);
 
 const accountPage = readFileSync("app/account/page.tsx", "utf8");
-assert.match(accountPage, /<Suspense fallback={<PersonalRankingSkeleton \/>}>/);
-assert.match(accountPage, /id="ranking-title"/);
+assert.match(accountPage, /Open the builder/);
 assert.equal(existsSync("app/account/loading.tsx"), false);
-
-const personalRankingView = readFileSync("app/account/PersonalRanking.tsx", "utf8");
-assert.match(personalRankingView, /max-h-80/);
-assert.match(personalRankingView, /sm:max-h-\[22\.75rem\]/);
-assert.match(personalRankingView, /sticky top-0/);
-assert.match(personalRankingView, /overflow-y-auto/);
-assert.doesNotMatch(personalRankingView, /Ties count|Early signal/);
 
 const oauthRoute = readFileSync("app/auth/oauth/route.ts", "utf8");
 const callbackRoute = readFileSync("app/auth/callback/route.ts", "utf8");
 const confirmRoute = readFileSync("app/auth/confirm/route.ts", "utf8");
-const labConfirmRoute = readFileSync("app/lab/auth/confirm/route.ts", "utf8");
-const labActions = readFileSync("app/lab/sign-in/actions.ts", "utf8");
 assert.match(oauthRoute, /signInWithOAuth/);
 assert.match(callbackRoute, /exchangeCodeForSession/);
 assert.match(confirmRoute, /verifyOtp/);
-assert.match(labConfirmRoute, /await finishPublicSignIn\(result\.data\.user\)/);
-assert.match(labActions, /finally \{\s+await rotateArenaSession\(\)/);
 
 const privacyPolicy = readFileSync("docs/privacy-policy.md", "utf8");
 assert.match(privacyPolicy, /does not receive your Google, GitHub, Discord, or X password/);
 assert.match(privacyPolicy, /- Google, GitHub, Discord, or X when you choose that provider/);
-
-const voteRoute = readFileSync("app/api/arena/vote/route.ts", "utf8");
-assert.match(voteRoute, /!matchup\.stealthVariantId && authUserId/);
-assert.match(voteRoute, /getAuthenticatedUserId/);
-assert.match(voteRoute, /logArenaVoteRequest/);
-
-const personalRanking = readFileSync("lib/account/personalRanking.ts", "utf8");
-assert.match(personalRanking, /matchup\."stealthVariantId" IS NULL/);
-assert.match(personalRanking, /vote\.choice IN \('A', 'B', 'TIE'\)/);
-assert.doesNotMatch(personalRanking, /prisma\.vote\.count/);
-assert.doesNotMatch(personalRanking, /prisma\.model\.update|prisma\.vote\.update/);
 
 console.log("public authentication contract checks passed");

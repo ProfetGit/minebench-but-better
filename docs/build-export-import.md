@@ -2,6 +2,7 @@
 
 MineBench can export completed voxel builds to files that are useful outside the web viewer. The main paths are:
 
+- Litematica (`.litematic`) for building in survival with a material list.
 - JSON for the exact MineBench voxel build payload.
 - GLB for Blender and other glTF tools.
 - STL for mesh-only and 3D-print preparation workflows.
@@ -14,17 +15,12 @@ This guide covers the export options, import workflows, and common failure modes
 
 The build export control is the cube/download icon on build cards and model build viewers. It appears when the viewer has a loaded `VoxelBuild`.
 
-Current surfaces:
+It is offered wherever a build is on screen, alongside a JSON download button
+that saves the raw MineBench build payload.
 
-- Arena matchup build cards.
-- Sandbox benchmark result cards.
-- Sandbox live model result cards.
-- Gallery detail viewers after the selected example has loaded.
-- Leaderboard model detail prompt modal after the selected build has loaded.
-
-The live generation surface also has a JSON download button. That is separate from the build export menu and exists for quickly saving the raw MineBench build payload.
-
-Signed-in Sandbox generations keep canonical JSON in private Storage. Account downloads that source artifact directly; Gallery viewers reuse the existing client-side export controls without creating server export jobs.
+Signed-in generations keep canonical JSON in private Storage, and account
+downloads read that source artifact directly rather than creating a server
+export job.
 
 ## Export Formats
 
@@ -84,6 +80,27 @@ Recommended print-prep checks:
 - Check that thin voxel details survive at the chosen nozzle size and layer height.
 - Add supports or split the model if there are large overhangs.
 - Consider simplifying very large builds before slicing.
+
+### Litematica `.litematic`
+
+The primary Minecraft target, because it carries block states and gives the
+player a material list to gather against.
+
+- Root format: gzipped NBT with an empty root name.
+- Schematic version 6, subversion 1, verified against Litematica's own source
+  (`maruohon/litematica`, branch `pre-rewrite/fabric/1.20.x`).
+- `MinecraftDataVersion` is pinned to 3953 (Minecraft 1.21).
+- One region named `Main`, sized to the occupied build bounds, positioned at
+  `[0, 0, 0]`.
+- Index order: `y * (width * length) + z * width + x`.
+- Palette entry 0 is always `minecraft:air`; entries are packed at
+  `max(2, ceil(log2(paletteSize)))` bits, least significant bit first, spanning
+  long boundaries.
+- Written from a resolved build, so stairs, slabs, log axes and door halves
+  carry their exact block states.
+
+A round trip test writes a build, reads it back with the in-repo NBT reader, and
+compares block for block including every state property.
 
 ### Minecraft `.schem`
 

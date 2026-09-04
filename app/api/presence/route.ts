@@ -2,24 +2,25 @@ import { geolocation } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import { getAuthenticatedUserId } from "@/lib/auth/request";
 import {
-  ARENA_SESSION_COOKIE,
-  ARENA_SESSION_COOKIE_OPTIONS,
-  readArenaSessionId,
-} from "@/lib/arena/session";
+  PUBLIC_SESSION_COOKIE,
+  PUBLIC_SESSION_COOKIE_OPTIONS,
+  hashClientIp,
+  readPublicSessionId,
+  trustedClientIp,
+} from "@/lib/publicSession";
 import { touchPublicSessionActivity } from "@/lib/publicPresence";
-import { hashVoteIp, trustedClientIp } from "@/lib/voteBlock";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
-  const existing = readArenaSessionId(request.headers.get("cookie"));
+  const existing = readPublicSessionId(request.headers.get("cookie"));
   const sessionId = existing && existing.length <= 128 ? existing : crypto.randomUUID();
   try {
     const geo = geolocation(request);
     await touchPublicSessionActivity({
       sessionId,
       userId: await getAuthenticatedUserId(request),
-      ipHmac: hashVoteIp(trustedClientIp(request.headers)),
+      ipHmac: hashClientIp(trustedClientIp(request.headers)),
       location: {
         city: geo.city,
         countryRegion: geo.countryRegion,
@@ -36,7 +37,7 @@ export async function POST(request: Request) {
     headers: { "Cache-Control": "private, no-store" },
   });
   if (!existing || existing !== sessionId) {
-    response.cookies.set(ARENA_SESSION_COOKIE, sessionId, ARENA_SESSION_COOKIE_OPTIONS);
+    response.cookies.set(PUBLIC_SESSION_COOKIE, sessionId, PUBLIC_SESSION_COOKIE_OPTIONS);
   }
   return response;
 }

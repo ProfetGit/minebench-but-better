@@ -34,7 +34,7 @@ export const metadata: Metadata = {
 };
 
 const breadcrumbData = breadcrumbJsonLd([
-  { name: "Arena", path: "/" },
+  { name: "Builder", path: "/" },
   { name: "FAQ", path: "/faq" },
 ]);
 
